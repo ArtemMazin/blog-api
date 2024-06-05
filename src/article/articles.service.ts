@@ -14,6 +14,11 @@ export class ArticleService {
     const createdArticle = new this.articleModel(createArticleDto);
     return createdArticle.save();
   }
+
+  async findOneArticle(id: string): Promise<IArticle> {
+    return this.articleModel.findById(id).exec();
+  }
+
   async findAllArticles(): Promise<IArticle[]> {
     return this.articleModel.find().exec();
   }

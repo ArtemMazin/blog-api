@@ -3,6 +3,4 @@ export class ArticleDto {
   content: string;
   author: string;
   image: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
