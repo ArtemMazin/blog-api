@@ -23,3 +23,19 @@ export class SignUpDto {
   })
   password: string;
 }
+
+export class SignInDto {
+  @IsEmail()
+  @ApiProperty({
+    example: 'test@gmail.com',
+    description: 'User email',
+  })
+  email: string;
+
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '123456',
+    description: 'User password',
+  })
+  password: string;
+}
