@@ -1,7 +1,15 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignInDto, SignUpDto } from './dto';
+import { SignUpDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -13,10 +21,11 @@ export class AuthController {
     return await this.authService.signUp(user);
   }
 
+  @UseGuards(AuthGuard('local'))
   @Post('sign-in')
-  @ApiOkResponse({ type: SignInDto })
+  @ApiOkResponse({ type: SignUpDto })
   @HttpCode(HttpStatus.OK)
-  async signIn(@Body() user: SignInDto) {
+  async login(@Body() user: SignUpDto) {
     return await this.authService.signIn(user.email, user.password);
   }
 }

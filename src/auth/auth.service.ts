@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto';
 
@@ -21,7 +25,7 @@ export class AuthService {
       throw new BadRequestException({ type: 'User does not exist' });
     }
     if (userExists.password !== pass) {
-      throw new BadRequestException({ type: 'Invalid password' });
+      throw new UnauthorizedException({ type: 'Invalid password' });
     }
     const user = {
       id: userExists._id,
