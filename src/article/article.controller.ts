@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ArticleService } from './articles.service';
-import IArticle from 'types/article';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { FindOneParams } from 'src/article/article-param';
 import { ArticleDto } from './dto';
+import { IArticle } from 'types/types';
 
 @Controller('articles')
 export class ArticlesController {
