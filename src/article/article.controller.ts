@@ -1,15 +1,24 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ArticleService } from './articles.service';
-import { ApiOkResponse } from '@nestjs/swagger';
-import { FindOneParams } from 'src/article/article-param';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ArticleDto } from './dto';
 import { IArticle } from 'types/types';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@Controller('articles')
+@Controller('article')
 export class ArticlesController {
   constructor(private readonly service: ArticleService) {}
 
-  @Get('get-articles')
+  @Get('all')
   @ApiOkResponse({ type: ArticleDto, isArray: true })
   async getAllArticles(): Promise<IArticle[]> {
     return this.service.findAllArticles();
@@ -17,12 +26,31 @@ export class ArticlesController {
 
   @Get(':id')
   @ApiOkResponse({ type: ArticleDto })
-  findOne(@Param() params: FindOneParams): Promise<IArticle> {
-    return this.service.findOneArticle(params.id);
+  async getOneArticle(@Param('id') params: string): Promise<IArticle> {
+    return this.service.findOneArticle(params);
   }
 
-  @Post('create-article')
+  @UseGuards(JwtAuthGuard)
+  @Post('create')
+  @ApiCreatedResponse({ type: ArticleDto })
   async createArticle(@Body() createArticleDto: ArticleDto): Promise<IArticle> {
     return this.service.createArticle(createArticleDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  @ApiOkResponse({ type: ArticleDto })
+  async updateArticle(
+    @Param('id') params: string,
+    @Body() updateArticleDto: ArticleDto,
+  ): Promise<IArticle> {
+    console.log(params);
+    return this.service.updateArticle(params, updateArticleDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteArticle(@Param('id') params: string): Promise<IArticle> {
+    return this.service.deleteArticle(params);
   }
 }

@@ -3,8 +3,6 @@ export interface IArticle {
   content: string;
   author: string;
   image: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface IUser {

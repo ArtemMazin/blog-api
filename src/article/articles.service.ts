@@ -22,4 +22,15 @@ export class ArticleService {
   async findAllArticles(): Promise<IArticle[]> {
     return this.articleModel.find().exec();
   }
+
+  async deleteArticle(id: string): Promise<IArticle> {
+    return this.articleModel.findByIdAndDelete(id).exec();
+  }
+
+  async updateArticle(
+    id: string,
+    updateArticleDto: ArticleDto,
+  ): Promise<IArticle> {
+    return this.articleModel.findByIdAndUpdate(id, updateArticleDto);
+  }
 }
