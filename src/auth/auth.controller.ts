@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -10,7 +11,8 @@ import {
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { LocalAuthGuard } from './local-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -28,5 +30,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Request() req) {
     return this.authService.login(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@Request() req) {
+    return this.authService.getProfile(req.user);
   }
 }

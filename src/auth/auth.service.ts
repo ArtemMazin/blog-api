@@ -12,20 +12,25 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signUp(user: SignUpDto): Promise<SignUpDto> {
+  async signUp(user: SignUpDto) {
     const userExists = await this.usersService.findByEmail(user.email);
 
     if (userExists) {
       throw new BadRequestException({ type: 'User already exists' });
     }
 
-    const newUser = {
+    const newUser = await this.usersService.createUser({
       name: user.name,
       email: user.email,
       password: await argon2.hash(user.password),
-    };
+    });
 
-    return await this.usersService.createUser(newUser);
+    const token = this.jwtService.sign({
+      email: newUser.email,
+      sub: newUser._id,
+    });
+
+    return { newUser, token };
   }
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -49,5 +54,9 @@ export class AuthService {
       email: user.email,
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async getProfile(user: IUser) {
+    return await this.usersService.findByEmail(user.email);
   }
 }
