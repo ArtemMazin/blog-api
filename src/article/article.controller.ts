@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ArticleService } from './articles.service';
@@ -24,7 +25,7 @@ export class ArticlesController {
     return this.service.findAllArticles();
   }
 
-  @Get(':id')
+  @Get('find/:id')
   @ApiOkResponse({ type: ArticleDto })
   async getOneArticle(@Param('id') params: string): Promise<IArticle> {
     return this.service.findOneArticle(params);
@@ -38,19 +39,24 @@ export class ArticlesController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @Patch('update/:id')
   @ApiOkResponse({ type: ArticleDto })
   async updateArticle(
     @Param('id') params: string,
     @Body() updateArticleDto: ArticleDto,
   ): Promise<IArticle> {
-    console.log(params);
     return this.service.updateArticle(params, updateArticleDto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
+  @Delete('delete/:id')
   async deleteArticle(@Param('id') params: string): Promise<IArticle> {
     return this.service.deleteArticle(params);
+  }
+
+  @Get('search')
+  @ApiOkResponse({ type: ArticleDto, isArray: true })
+  async searchArticles(@Query('query') query: string): Promise<IArticle[]> {
+    return this.service.searchArticles(query);
   }
 }

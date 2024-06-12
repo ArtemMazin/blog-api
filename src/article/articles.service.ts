@@ -33,4 +33,14 @@ export class ArticleService {
   ): Promise<IArticle> {
     return this.articleModel.findByIdAndUpdate(id, updateArticleDto);
   }
+
+  async searchArticles(searchTerm: string): Promise<IArticle[]> {
+    const regex = new RegExp(searchTerm, 'i');
+
+    return this.articleModel
+      .find({
+        $or: [{ title: { $regex: regex } }, { content: { $regex: regex } }],
+      })
+      .exec();
+  }
 }
