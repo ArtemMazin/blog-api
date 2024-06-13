@@ -16,12 +16,6 @@ export class ArticleDto {
 
   @IsNotEmpty()
   @ApiProperty({
-    example: 'Name',
-  })
-  author: string;
-
-  @IsNotEmpty()
-  @ApiProperty({
     example:
       'https://unsplash.com/photos/a-man-wearing-a-white-hat-mjdBHLjOEMY',
   })

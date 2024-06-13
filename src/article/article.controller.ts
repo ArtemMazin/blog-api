@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ArticleService } from './articles.service';
@@ -34,8 +35,13 @@ export class ArticlesController {
   @UseGuards(JwtAuthGuard)
   @Post('create')
   @ApiCreatedResponse({ type: ArticleDto })
-  async createArticle(@Body() createArticleDto: ArticleDto): Promise<IArticle> {
-    return this.service.createArticle(createArticleDto);
+  async createArticle(
+    @Body() createArticleDto: ArticleDto,
+    @Request() req,
+  ): Promise<IArticle> {
+    const userId = req.user.userId;
+
+    return this.service.createArticle(createArticleDto, userId);
   }
 
   @UseGuards(JwtAuthGuard)
