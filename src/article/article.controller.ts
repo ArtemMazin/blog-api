@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
   Query,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ArticleService } from './articles.service';
@@ -37,9 +37,9 @@ export class ArticlesController {
   @ApiCreatedResponse({ type: ArticleDto })
   async createArticle(
     @Body() createArticleDto: ArticleDto,
-    @Request() req,
+    @Req() req,
   ): Promise<IArticle> {
-    const userId = req.user.userId;
+    const userId = req.user._id;
 
     return this.service.createArticle(createArticleDto, userId);
   }

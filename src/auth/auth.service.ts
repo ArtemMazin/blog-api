@@ -2,8 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
-import { IUser } from 'types/types';
 import * as argon2 from 'argon2';
+import { Response } from 'express';
+import { IUser } from 'types/types';
 
 @Injectable()
 export class AuthService {
@@ -33,26 +34,33 @@ export class AuthService {
     return { newUser, token };
   }
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(email: string, pass: string): Promise<IUser> {
     const userExists = await this.usersService.findByEmail(email);
     const isMatch = await argon2.verify(userExists.password, pass);
 
     if (userExists && isMatch) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = userExists.toJSON();
+      const { _id, email } = userExists.toJSON();
 
-      return result;
+      return { _id, email };
     }
     return null;
   }
 
-  async login(user: IUser) {
+  async login(user: IUser, res: Response) {
     const payload = { email: user.email, sub: user._id };
+    const accessToken = this.jwtService.sign(payload);
+
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      maxAge: 3600000, // 1 час
+    });
 
     return {
       id: user._id,
       email: user.email,
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
     };
   }
 
