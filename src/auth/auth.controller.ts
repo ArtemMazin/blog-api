@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -10,33 +9,30 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignUpDto } from './dto';
+import { SignInResponseDto, SignUpDto, SignUpResponseDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Response } from 'express';
+import { IAuthRequest } from 'types/types';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('sign-up')
-  @ApiCreatedResponse({ type: SignUpDto })
+  @ApiCreatedResponse({ type: SignUpResponseDto })
   async signUp(@Body() user: SignUpDto) {
     return await this.authService.signUp(user);
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('sign-in')
-  @ApiOkResponse({ type: SignUpDto })
+  @ApiOkResponse({ type: SignInResponseDto })
   @HttpCode(HttpStatus.OK)
-  async login(@Req() req, @Res({ passthrough: true }) res: Response) {
+  async login(
+    @Req() req: IAuthRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     return this.authService.login(req.user, res);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@Req() req) {
-    return this.authService.getProfile(req.user);
   }
 }

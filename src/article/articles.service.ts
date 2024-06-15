@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Article } from 'src/schemas/article.schema';
-import { ArticleDto } from './dto';
+import { ArticleDto, UpdateArticleDto } from './dto';
 import { IArticle } from 'types/types';
 import { User } from 'src/schemas/user.schema';
 
@@ -36,10 +36,12 @@ export class ArticleService {
 
   async updateArticle(
     id: string,
-    updateArticleDto: ArticleDto,
+    updateArticleDto: UpdateArticleDto,
   ): Promise<IArticle> {
     return this.articleModel
-      .findByIdAndUpdate(id, updateArticleDto)
+      .findByIdAndUpdate(id, updateArticleDto, {
+        new: true,
+      })
       .populate('author')
       .exec();
   }

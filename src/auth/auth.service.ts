@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { SignUpDto } from './dto';
+import { SignUpDto, SignInDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
@@ -34,9 +34,11 @@ export class AuthService {
     return { newUser, token };
   }
 
-  async validateUser(email: string, pass: string): Promise<IUser> {
+  async validateUser(signInDto: SignInDto): Promise<IUser | null> {
+    const { email, password } = signInDto;
+
     const userExists = await this.usersService.findByEmail(email);
-    const isMatch = await argon2.verify(userExists.password, pass);
+    const isMatch = await argon2.verify(userExists.password, password);
 
     if (userExists && isMatch) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,9 +64,5 @@ export class AuthService {
       email: user.email,
       access_token: accessToken,
     };
-  }
-
-  async getProfile(user: IUser) {
-    return await this.usersService.findByEmail(user.email);
   }
 }

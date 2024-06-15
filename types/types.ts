@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 export interface IArticle {
   title: string;
   content: string;
@@ -7,4 +9,8 @@ export interface IArticle {
 export interface IUser {
   _id: string;
   email: string;
+}
+
+export interface IAuthRequest extends Request {
+  user: IUser;
 }

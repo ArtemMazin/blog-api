@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { ArticleService } from './articles.service';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { ArticleDto } from './dto';
-import { IArticle } from 'types/types';
+import { ArticleDto, UpdateArticleDto } from './dto';
+import { IAuthRequest, IArticle } from 'types/types';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('article')
@@ -37,7 +37,7 @@ export class ArticlesController {
   @ApiCreatedResponse({ type: ArticleDto })
   async createArticle(
     @Body() createArticleDto: ArticleDto,
-    @Req() req,
+    @Req() req: IAuthRequest,
   ): Promise<IArticle> {
     const userId = req.user._id;
 
@@ -49,7 +49,7 @@ export class ArticlesController {
   @ApiOkResponse({ type: ArticleDto })
   async updateArticle(
     @Param('id') params: string,
-    @Body() updateArticleDto: ArticleDto,
+    @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<IArticle> {
     return this.service.updateArticle(params, updateArticleDto);
   }
