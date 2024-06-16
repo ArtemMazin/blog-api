@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { User } from 'src/schemas/user.schema';
 
 export interface IArticle {
   title: string;
@@ -6,11 +7,8 @@ export interface IArticle {
   image: string;
 }
 
-export interface IUser {
-  _id: string;
-  email: string;
-}
+export interface IUserWithoutPassword extends Omit<User, 'password'> {}
 
 export interface IAuthRequest extends Request {
-  user: IUser;
+  user: User;
 }

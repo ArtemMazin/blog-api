@@ -39,7 +39,7 @@ export class ArticlesController {
     @Body() createArticleDto: ArticleDto,
     @Req() req: IAuthRequest,
   ): Promise<IArticle> {
-    const userId = req.user._id;
+    const userId = req.user._id.toString();
 
     return this.service.createArticle(createArticleDto, userId);
   }

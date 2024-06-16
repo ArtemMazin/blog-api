@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsEmail, IsString } from 'class-validator';
-import { IUser } from 'types/types';
+import { IUserWithoutPassword } from 'types/types';
 
 export class SignUpDto {
   @IsNotEmpty()
@@ -43,7 +43,7 @@ export class SignInDto {
 
 export class SignUpResponseDto {
   @IsNotEmpty()
-  newUser: IUser;
+  newUser: IUserWithoutPassword;
 
   @IsString()
   @IsNotEmpty()

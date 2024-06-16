@@ -4,7 +4,8 @@ import { SignUpDto, SignInDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
-import { IUser } from 'types/types';
+import { User } from 'src/schemas/user.schema';
+import { IUserWithoutPassword } from 'types/types';
 
 @Injectable()
 export class AuthService {
@@ -34,22 +35,32 @@ export class AuthService {
     return { newUser, token };
   }
 
-  async validateUser(signInDto: SignInDto): Promise<IUser | null> {
+  async validateUser(
+    signInDto: SignInDto,
+  ): Promise<IUserWithoutPassword | null> {
     const { email, password } = signInDto;
 
-    const userExists = await this.usersService.findByEmail(email);
+    const userExists = await this.usersService.findByEmailWithPassword(email);
+    if (!userExists) {
+      return null;
+    }
     const isMatch = await argon2.verify(userExists.password, password);
 
-    if (userExists && isMatch) {
+    if (isMatch) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _id, email } = userExists.toJSON();
-
-      return { _id, email };
+      const { password, ...result } = userExists;
+      return result as IUserWithoutPassword;
     }
     return null;
   }
 
-  async login(user: IUser, res: Response) {
+  async login(
+    user: User | null,
+    res: Response,
+  ): Promise<{ user: User; access_token: string }> {
+    if (!user) {
+      throw new BadRequestException({ type: 'Invalid credentials' });
+    }
     const payload = { email: user.email, sub: user._id };
     const accessToken = this.jwtService.sign(payload);
 
@@ -60,8 +71,7 @@ export class AuthService {
     });
 
     return {
-      id: user._id,
-      email: user.email,
+      user,
       access_token: accessToken,
     };
   }
