@@ -15,6 +15,7 @@ import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ArticleDto, UpdateArticleDto } from './dto';
 import { IAuthRequest, IArticle } from 'types/types';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthorGuard } from 'src/auth/guards/author.guard';
 
 @Controller('article')
 export class ArticlesController {
@@ -44,7 +45,7 @@ export class ArticlesController {
     return this.service.createArticle(createArticleDto, userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AuthorGuard)
   @Patch('update/:id')
   @ApiOkResponse({ type: ArticleDto })
   async updateArticle(
@@ -54,7 +55,7 @@ export class ArticlesController {
     return this.service.updateArticle(params, updateArticleDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AuthorGuard)
   @Delete('delete/:id')
   async deleteArticle(@Param('id') params: string): Promise<IArticle> {
     return this.service.deleteArticle(params);

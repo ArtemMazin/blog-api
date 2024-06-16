@@ -56,4 +56,10 @@ export class ArticleService {
       .populate('author')
       .exec();
   }
+
+  async getArticleAuthor(articleId: string): Promise<string> {
+    const article = await this.articleModel.findById(articleId).lean();
+
+    return article?.author.toString();
+  }
 }
