@@ -8,10 +8,22 @@ import { IUserWithoutPassword } from 'types/types';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        JwtStrategy.extractJWT,
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.get('JWT_SECRET'),
     });
+  }
+
+  private static extractJWT(req: {
+    cookies: { access_token: string | null };
+  }): string | null {
+    if (req?.cookies?.access_token) {
+      return req.cookies.access_token;
+    }
+    return null;
   }
 
   validate(payload: any): Pick<IUserWithoutPassword, '_id' | 'email'> {
