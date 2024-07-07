@@ -5,6 +5,9 @@ export interface IArticle {
   title: string;
   content: string;
   image: string;
+  author: User;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IUserWithoutPassword extends Omit<User, 'password'> {}

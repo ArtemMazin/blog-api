@@ -15,6 +15,12 @@ export class Article extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   author: User;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
+
+  @Prop({ default: Date.now })
+  updatedAt: Date;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);

@@ -2,13 +2,17 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
   Param,
+  ParseFilePipe,
   Patch,
   Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ArticleService } from './articles.service';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
@@ -16,6 +20,7 @@ import { ArticleDto, UpdateArticleDto } from './dto';
 import { IAuthRequest, IArticle } from 'types/types';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthorGuard } from 'src/auth/guards/author.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('article')
 export class ArticlesController {
@@ -35,14 +40,25 @@ export class ArticlesController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create')
+  @UseInterceptors(FileInterceptor('image'))
   @ApiCreatedResponse({ type: ArticleDto })
   async createArticle(
     @Body() createArticleDto: ArticleDto,
     @Req() req: IAuthRequest,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({
+            fileType: /^image\//,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
   ): Promise<IArticle> {
     const userId = req.user._id.toString();
 
-    return this.service.createArticle(createArticleDto, userId);
+    return this.service.createArticle(createArticleDto, userId, file);
   }
 
   @UseGuards(JwtAuthGuard, AuthorGuard)

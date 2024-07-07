@@ -1,28 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class ArticleDto {
-  @IsString()
   @IsNotEmpty()
-  @ApiProperty({
-    example: 'Title',
-  })
+  @IsString()
   title: string;
 
-  @IsString()
   @IsNotEmpty()
-  @ApiProperty({
-    example: 'Content',
-  })
+  @IsString()
   content: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    example:
-      'https://unsplash.com/photos/a-man-wearing-a-white-hat-mjdBHLjOEMY',
-  })
-  image: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class UpdateArticleDto {

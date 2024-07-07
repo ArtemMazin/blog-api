@@ -8,6 +8,7 @@ import { User } from 'src/schemas/user.schema';
 import { InvalidIdFormatException } from 'src/errors/InvalidIdFormatException';
 import { NotFoundArticleException } from 'src/errors/NotFoundArticleException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
+import { multerConfig } from 'src/config/multer.config';
 
 @Injectable()
 export class ArticleService {
@@ -16,7 +17,11 @@ export class ArticleService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  async createArticle(createArticleDto: ArticleDto, userId: string) {
+  async createArticle(
+    createArticleDto: ArticleDto,
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<IArticle> {
     if (!mongoose.isValidObjectId(userId)) {
       throw new InvalidIdFormatException();
     }
@@ -31,6 +36,7 @@ export class ArticleService {
       const createdArticle = new this.articleModel({
         ...createArticleDto,
         author: user,
+        image: file ? `${multerConfig.destination}${file.filename}` : null,
       });
       return createdArticle.save();
     } catch (error) {
