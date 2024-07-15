@@ -147,4 +147,25 @@ export class ArticleService {
       throw error;
     }
   }
+
+  async findMyAllArticles(userId: string): Promise<IArticle[]> {
+    if (!mongoose.isValidObjectId(userId)) {
+      throw new InvalidIdFormatException();
+    }
+    try {
+      const objectId = new mongoose.Types.ObjectId(userId);
+      const myArticles = await this.articleModel
+        .find({ author: objectId })
+        .populate('author')
+        .exec();
+
+      if (myArticles === null) {
+        throw new NotFoundArticleException();
+      }
+
+      return myArticles;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

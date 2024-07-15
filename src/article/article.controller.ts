@@ -32,6 +32,13 @@ export class ArticlesController {
     return this.service.findAllArticles();
   }
 
+  @Get('my-all')
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: ArticleDto, isArray: true })
+  async getMyAllArticles(@Req() req: IAuthRequest): Promise<IArticle[]> {
+    return this.service.findMyAllArticles(req.user._id.toString());
+  }
+
   @Get('find/:id')
   @ApiOkResponse({ type: ArticleDto })
   async getOneArticle(@Param('id') params: string): Promise<IArticle> {
