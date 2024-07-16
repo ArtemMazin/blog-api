@@ -44,6 +44,36 @@ export class ArticleService {
     }
   }
 
+  async updateArticle(
+    id: string,
+    updateArticleDto: UpdateArticleDto,
+    file?: Express.Multer.File,
+  ): Promise<IArticle> {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new InvalidIdFormatException();
+    }
+
+    try {
+      const updateData: any = { ...updateArticleDto };
+
+      if (file) {
+        updateData.image = `${multerConfig.destination}${file.filename}`;
+      }
+
+      const existingArticle = await this.articleModel
+        .findByIdAndUpdate(id, updateData, { new: true })
+        .populate('author');
+
+      if (!existingArticle) {
+        throw new NotFoundArticleException();
+      }
+
+      return existingArticle;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findOneArticle(id: string): Promise<IArticle> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
@@ -90,30 +120,6 @@ export class ArticleService {
         throw new NotFoundArticleException();
       }
       return deletedArticle;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async updateArticle(
-    id: string,
-    updateArticleDto: UpdateArticleDto,
-  ): Promise<IArticle> {
-    if (!mongoose.isValidObjectId(id)) {
-      throw new InvalidIdFormatException();
-    }
-
-    try {
-      const existingArticle = this.articleModel
-        .findByIdAndUpdate(id, updateArticleDto, {
-          new: true,
-        })
-        .populate('author');
-
-      if (existingArticle === null) {
-        throw new NotFoundArticleException();
-      }
-      return existingArticle;
     } catch (error) {
       throw error;
     }

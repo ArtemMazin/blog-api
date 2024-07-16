@@ -70,12 +70,24 @@ export class ArticlesController {
 
   @UseGuards(JwtAuthGuard, AuthorGuard)
   @Patch('update/:id')
+  @UseInterceptors(FileInterceptor('image'))
   @ApiOkResponse({ type: ArticleDto })
   async updateArticle(
-    @Param('id') params: string,
+    @Param('id') id: string,
     @Body() updateArticleDto: UpdateArticleDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({
+            fileType: /^image\//,
+          }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    file?: Express.Multer.File,
   ): Promise<IArticle> {
-    return this.service.updateArticle(params, updateArticleDto);
+    return this.service.updateArticle(id, updateArticleDto, file);
   }
 
   @UseGuards(JwtAuthGuard, AuthorGuard)
