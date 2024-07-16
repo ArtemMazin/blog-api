@@ -35,4 +35,13 @@ export class AuthController {
   ) {
     return this.authService.login(req.user, res);
   }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(
+    @Req() req: IAuthRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.logout(res);
+  }
 }

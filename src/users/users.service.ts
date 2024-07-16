@@ -44,4 +44,27 @@ export class UsersService {
       throw new NotFoundUserException();
     }
   }
+
+  async addFavoriteArticle(userId: string, articleId: string): Promise<User> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundUserException();
+    }
+    user.favorite_articles.push(articleId);
+    return await user.save();
+  }
+
+  async removeFavoriteArticle(
+    userId: string,
+    articleId: string,
+  ): Promise<User> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundUserException();
+    }
+    user.favorite_articles = user.favorite_articles.filter(
+      (favoriteArticleId) => favoriteArticleId !== articleId,
+    );
+    return await user.save();
+  }
 }

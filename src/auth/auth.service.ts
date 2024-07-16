@@ -112,4 +112,8 @@ export class AuthService {
       throw error;
     }
   }
+
+  async logout(res: Response) {
+    res.clearCookie('access_token');
+  }
 }
