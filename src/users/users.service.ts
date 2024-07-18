@@ -50,6 +50,9 @@ export class UsersService {
     if (!user) {
       throw new NotFoundUserException();
     }
+    if (user.favorite_articles.includes(articleId)) {
+      return user;
+    }
     user.favorite_articles.push(articleId);
     return await user.save();
   }

@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { IAuthRequest } from 'types/types';
@@ -25,7 +17,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('add-favorite-article')
+  @Patch('add-favorite-article')
   @ApiOkResponse({ type: ProfileResponseDto })
   addFavoriteArticle(
     @Req() req: IAuthRequest,
@@ -38,7 +30,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('delete-favorite-article')
+  @Patch('delete-favorite-article')
   @ApiOkResponse({ type: ProfileResponseDto })
   deleteFavoriteArticle(
     @Req() req: IAuthRequest,
