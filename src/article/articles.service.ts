@@ -8,7 +8,7 @@ import { User } from 'src/schemas/user.schema';
 import { InvalidIdFormatException } from 'src/errors/InvalidIdFormatException';
 import { NotFoundArticleException } from 'src/errors/NotFoundArticleException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
-import { multerConfig } from 'src/config/multer.config';
+import { articleImageConfig } from 'src/config/multer.config';
 
 @Injectable()
 export class ArticleService {
@@ -36,7 +36,9 @@ export class ArticleService {
       const createdArticle = new this.articleModel({
         ...createArticleDto,
         author: user,
-        image: file ? `${multerConfig.destination}${file.filename}` : null,
+        image: file
+          ? `${articleImageConfig.destination}${file.filename}`
+          : null,
       });
       return createdArticle.save();
     } catch (error) {
@@ -57,7 +59,7 @@ export class ArticleService {
       const updateData: any = { ...updateArticleDto };
 
       if (file) {
-        updateData.image = `${multerConfig.destination}${file.filename}`;
+        updateData.image = `${articleImageConfig.destination}${file.filename}`;
       }
 
       const existingArticle = await this.articleModel

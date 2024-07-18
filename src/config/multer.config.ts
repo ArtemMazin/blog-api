@@ -1,18 +1,35 @@
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
-export const multerConfig = {
-  destination: 'uploads/', // Путь для сохранения загруженных файлов
+export const articleImageConfig = {
+  destination: 'uploads/articles/',
 };
 
-export const multerOptions = {
+export const articleImageOptions = {
   storage: diskStorage({
     destination: (req, file, cb) => {
-      cb(null, multerConfig.destination);
+      cb(null, articleImageConfig.destination);
     },
     filename: (req, file, cb) => {
       const fileExtension = extname(file.originalname);
       const fileName = `${Date.now()}${fileExtension}`;
+      cb(null, fileName);
+    },
+  }),
+};
+
+export const avatarConfig = {
+  destination: 'uploads/avatars/',
+};
+
+export const avatarOptions = {
+  storage: diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, avatarConfig.destination);
+    },
+    filename: (req, file, cb) => {
+      const fileExtension = extname(file.originalname);
+      const fileName = `avatar_${Date.now()}${fileExtension}`;
       cb(null, fileName);
     },
   }),

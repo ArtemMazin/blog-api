@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { IsEmail } from 'class-validator';
+import { IsEmail, IsOptional } from 'class-validator';
 import { Document } from 'mongoose';
 
 @Schema({
@@ -29,6 +29,10 @@ export class User extends Document {
 
   @Prop({ required: true })
   favorite_articles: string[];
+
+  @Prop()
+  @IsOptional()
+  avatar: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

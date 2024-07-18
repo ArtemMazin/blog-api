@@ -7,6 +7,7 @@ import { IUserWithoutPassword } from 'types/types';
 import { IncorrectDataException } from 'src/errors/IncorrectDataException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
+import { avatarConfig } from 'src/config/multer.config';
 
 @Injectable()
 export class UsersService {
@@ -68,6 +69,27 @@ export class UsersService {
     user.favorite_articles = user.favorite_articles.filter(
       (favoriteArticleId) => favoriteArticleId !== articleId,
     );
+    return await user.save();
+  }
+
+  async updateProfile(
+    userId: string,
+    updateProfileDto: { name: string },
+    file?: Express.Multer.File,
+  ): Promise<User> {
+    const updateData: any = {
+      ...updateProfileDto,
+    };
+    if (file) {
+      updateData.avatar = `${avatarConfig.destination}${file.filename}`;
+    }
+    const user = await this.userModel.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
+    if (!user) {
+      throw new NotFoundUserException();
+    }
+
     return await user.save();
   }
 }

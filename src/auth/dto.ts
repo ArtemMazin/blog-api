@@ -59,17 +59,3 @@ export class SignInResponseDto {
   @IsNotEmpty()
   token: string;
 }
-
-export class ProfileResponseDto {
-  @IsString()
-  @IsNotEmpty()
-  _id: string;
-
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-}
