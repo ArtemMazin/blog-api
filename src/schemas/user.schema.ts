@@ -40,6 +40,14 @@ export class User extends Document {
 
   @Prop({ default: Date.now })
   createdAt: Date;
+
+  @Prop()
+  @IsOptional()
+  resetPasswordToken: string;
+
+  @Prop()
+  @IsOptional()
+  resetPasswordExpires: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

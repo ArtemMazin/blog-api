@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto, SignInDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
 import { User } from 'src/schemas/user.schema';
@@ -115,5 +116,61 @@ export class AuthService {
 
   async logout(res: Response) {
     res.clearCookie('access_token');
+  }
+
+  async resetPassword(user: User | null) {
+    if (!user) {
+      throw new IncorrectDataException();
+    }
+    try {
+      const findedUser = await this.usersService.findByEmail(user.email);
+
+      if (!findedUser) {
+        throw new IncorrectDataException();
+      }
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const hashedToken = await argon2.hash(resetToken);
+      const expiresIn = new Date(Date.now() + 3600000); // 1 час
+
+      await this.usersService.updateProfile(String(findedUser._id), {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: expiresIn,
+      });
+      return { resetToken };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePassword(
+    user: User | null,
+    resetToken: string,
+    newPassword: string,
+  ): Promise<User> {
+    if (!resetToken || !newPassword) {
+      throw new IncorrectDataException();
+    }
+    try {
+      const findedUser = await this.usersService.findByResetToken(
+        user.email,
+        resetToken,
+      );
+
+      if (!findedUser) {
+        throw new IncorrectDataException();
+      }
+      if (findedUser.resetPasswordExpires < new Date()) {
+        throw new IncorrectDataException();
+      }
+      const hashedPassword = await argon2.hash(newPassword);
+
+      return await this.usersService.updateProfile(String(findedUser._id), {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 }
