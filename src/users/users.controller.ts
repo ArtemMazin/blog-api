@@ -29,6 +29,12 @@ export class UsersController {
     return this.usersService.findByEmail(req.user.email);
   }
 
+  @Get(':id')
+  @ApiOkResponse({ type: ProfileResponseDto })
+  getUserById(@Req() req: IAuthRequest) {
+    return this.usersService.findById(req.params.id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Patch('add-favorite-article')
   @ApiOkResponse({ type: ProfileResponseDto })

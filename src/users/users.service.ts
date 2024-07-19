@@ -24,6 +24,17 @@ export class UsersService {
     }
   }
 
+  async findById(id: string): Promise<IUserWithoutPassword> {
+    if (!id) {
+      throw new IncorrectDataException();
+    }
+    try {
+      return await this.userModel.findById(id).lean();
+    } catch (error) {
+      throw new NotFoundUserException();
+    }
+  }
+
   async findByEmail(email: string): Promise<IUserWithoutPassword> {
     if (!email) {
       throw new IncorrectDataException();

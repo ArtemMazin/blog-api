@@ -4,6 +4,14 @@ export class UpdateProfileDto {
   @IsString()
   @IsOptional()
   name: string;
+
+  @IsString()
+  @IsOptional()
+  about: string;
+
+  @IsString()
+  @IsOptional()
+  avatar: string;
 }
 
 export class ProfileResponseDto {

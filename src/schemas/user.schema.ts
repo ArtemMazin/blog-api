@@ -33,6 +33,13 @@ export class User extends Document {
   @Prop()
   @IsOptional()
   avatar: string;
+
+  @Prop()
+  @IsOptional()
+  about: string;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

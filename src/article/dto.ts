@@ -16,13 +16,13 @@ export class ArticleDto {
 export class UpdateArticleDto {
   @IsString()
   @IsOptional()
-  title?: string;
+  title: string;
 
   @IsString()
   @IsOptional()
-  content?: string;
+  content: string;
 
   @IsString()
   @IsOptional()
-  image?: string;
+  image: string;
 }
