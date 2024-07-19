@@ -14,8 +14,9 @@ import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Response } from 'express';
 import { IAuthRequest } from 'types/types';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
+@UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -46,29 +47,18 @@ export class AuthController {
     return this.authService.logout(res);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('reset-password')
   @ApiOkResponse({ type: SignInResponseDto })
   @HttpCode(HttpStatus.OK)
-  async resetPassword(
-    @Req() req: IAuthRequest,
-    // @Res({ passthrough: true }) res: Response,
-  ) {
-    return this.authService.resetPassword(req.user);
+  async resetPassword(@Body() body: { email: string }) {
+    return this.authService.resetPassword(body.email);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('reset-password-confirm')
   @HttpCode(HttpStatus.OK)
   async resetPasswordConfirm(
-    @Req() req: IAuthRequest,
     @Body() body: { token: string; newPassword: string },
-    // @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.updatePassword(
-      req.user,
-      body.token,
-      body.newPassword,
-    );
+    return this.authService.updatePassword(body.token, body.newPassword);
   }
 }

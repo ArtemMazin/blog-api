@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto, SignInDto } from './dto';
-import { JwtService } from '@nestjs/jwt';
-import * as crypto from 'crypto';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
 import { User } from 'src/schemas/user.schema';
@@ -118,22 +117,22 @@ export class AuthService {
     res.clearCookie('access_token');
   }
 
-  async resetPassword(user: User | null) {
-    if (!user) {
+  async resetPassword(email: string) {
+    if (!email) {
       throw new IncorrectDataException();
     }
     try {
-      const findedUser = await this.usersService.findByEmail(user.email);
+      const findedUser = await this.usersService.findByEmail(email);
 
       if (!findedUser) {
         throw new IncorrectDataException();
       }
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const hashedToken = await argon2.hash(resetToken);
+      const payload = { email: email };
+      const resetToken = this.jwtService.sign(payload, { expiresIn: '1h' });
       const expiresIn = new Date(Date.now() + 3600000); // 1 час
 
       await this.usersService.updateProfile(String(findedUser._id), {
-        resetPasswordToken: hashedToken,
+        resetPasswordToken: resetToken,
         resetPasswordExpires: expiresIn,
       });
       return { resetToken };
@@ -142,21 +141,24 @@ export class AuthService {
     }
   }
 
-  async updatePassword(
-    user: User | null,
-    resetToken: string,
-    newPassword: string,
-  ): Promise<User> {
+  async updatePassword(resetToken: string, newPassword: string): Promise<User> {
     if (!resetToken || !newPassword) {
       throw new IncorrectDataException();
     }
-    try {
-      const findedUser = await this.usersService.findByResetToken(
-        user.email,
-        resetToken,
-      );
+    if (newPassword.length < 6) {
+      throw new IncorrectDataException();
+    }
 
-      if (!findedUser) {
+    try {
+      const payload = this.jwtService.verify(resetToken);
+      const email = payload.email;
+
+      if (!email) {
+        throw new IncorrectDataException();
+      }
+      const findedUser = await this.usersService.findByEmailWithPassword(email);
+
+      if (!findedUser || findedUser.resetPasswordToken !== resetToken) {
         throw new IncorrectDataException();
       }
       if (findedUser.resetPasswordExpires < new Date()) {
@@ -170,6 +172,9 @@ export class AuthService {
         resetPasswordExpires: null,
       });
     } catch (error) {
+      if (error instanceof JsonWebTokenError) {
+        throw new IncorrectDataException();
+      }
       throw error;
     }
   }

@@ -8,7 +8,6 @@ import { IncorrectDataException } from 'src/errors/IncorrectDataException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
 import { avatarConfig } from 'src/config/multer.config';
-import * as argon2 from 'argon2';
 
 @Injectable()
 export class UsersService {
@@ -103,26 +102,5 @@ export class UsersService {
     }
 
     return await user.save();
-  }
-
-  async findByResetToken(email: string, resetToken: string): Promise<User> {
-    if (!resetToken) {
-      throw new IncorrectDataException();
-    }
-
-    const userExistExceptions = await this.findByEmailWithPassword(email);
-    const isMatch = await argon2.verify(
-      userExistExceptions.resetPasswordToken,
-      resetToken,
-    );
-
-    try {
-      if (!isMatch) {
-        throw new IncorrectDataException();
-      }
-      return userExistExceptions;
-    } catch (error) {
-      throw new NotFoundUserException();
-    }
   }
 }
