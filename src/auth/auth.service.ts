@@ -9,12 +9,14 @@ import { IUserWithoutPassword } from 'types/types';
 import { IncorrectDataException } from 'src/errors/IncorrectDataException';
 import { UserExistException } from 'src/errors/UserExistException';
 import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async signUp(user: SignUpDto) {
@@ -117,6 +119,30 @@ export class AuthService {
     res.clearCookie('access_token');
   }
 
+  async sendPasswordResetEmail(
+    email: string,
+    resetToken: string,
+  ): Promise<void> {
+    try {
+      const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+
+      await this.mailerService.sendMail({
+        to: email,
+        from: process.env.MAIL_USER,
+        subject: 'Сброс пароля',
+        template: 'reset-password', // Это имя файла шаблона без расширения
+        context: {
+          name: email.split('@')[0], // Простой способ получить имя из email
+          resetUrl,
+          resetToken,
+        },
+      });
+      console.log(`Письмо для сброса пароля отправлено на ${email}`);
+    } catch (error) {
+      throw new Error('Не удалось отправить письмо для сброса пароля');
+    }
+  }
+
   async resetPassword(email: string) {
     if (!email) {
       throw new IncorrectDataException();
@@ -135,7 +161,10 @@ export class AuthService {
         resetPasswordToken: resetToken,
         resetPasswordExpires: expiresIn,
       });
-      return { resetToken };
+
+      await this.sendPasswordResetEmail(email, resetToken);
+
+      return { message: 'Ссылка для сброса пароля отправлена на вашу почту' };
     } catch (error) {
       throw error;
     }
