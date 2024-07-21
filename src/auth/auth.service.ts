@@ -19,7 +19,7 @@ export class AuthService {
     private readonly mailerService: MailerService,
   ) {}
 
-  async signUp(user: SignUpDto) {
+  async signUp(user: SignUpDto, res: Response) {
     if (
       !user.email ||
       !user.password ||
@@ -48,12 +48,18 @@ export class AuthService {
         throw new UserCreationFailedException();
       }
 
-      const token = this.jwtService.sign({
+      const accessToken = this.jwtService.sign({
         email: newUser.email,
         sub: newUser._id,
       });
 
-      return { newUser, token };
+      res.cookie('access_token', accessToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 3600000, // 1 час
+      });
+
+      return { newUser, access_token: accessToken };
     } catch (error) {
       throw error;
     }
@@ -134,7 +140,6 @@ export class AuthService {
         context: {
           name: email.split('@')[0], // Простой способ получить имя из email
           resetUrl,
-          resetToken,
         },
       });
       console.log(`Письмо для сброса пароля отправлено на ${email}`);
@@ -182,10 +187,14 @@ export class AuthService {
       const payload = this.jwtService.verify(resetToken);
       const email = payload.email;
 
+      console.log('payload', payload);
+
       if (!email) {
         throw new IncorrectDataException();
       }
       const findedUser = await this.usersService.findByEmailWithPassword(email);
+
+      console.log('findedUser', findedUser);
 
       if (!findedUser || findedUser.resetPasswordToken !== resetToken) {
         throw new IncorrectDataException();

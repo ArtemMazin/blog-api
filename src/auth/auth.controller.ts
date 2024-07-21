@@ -23,8 +23,11 @@ export class AuthController {
 
   @Post('sign-up')
   @ApiCreatedResponse({ type: SignUpResponseDto })
-  async signUp(@Body() user: SignUpDto) {
-    return await this.authService.signUp(user);
+  async signUp(
+    @Body() user: SignUpDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return await this.authService.signUp(user, res);
   }
 
   @UseGuards(LocalAuthGuard)
