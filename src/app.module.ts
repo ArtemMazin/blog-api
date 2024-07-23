@@ -11,6 +11,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
     UsersModule,
     AuthModule,
     UsersModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

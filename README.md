@@ -1,73 +1,46 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# LifeHub API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+LifeHub API - это серверная часть современного новостного портала, разработанная для обеспечения функциональности создания и публикации статей и новостей. Проект использует передовые технологии для обеспечения быстрой, безопасной и эффективной работы.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Технологии
 
-## Description
+- [NestJS](https://nestjs.com/) - прогрессивный Node.js фреймворк для создания эффективных и масштабируемых серверных приложений
+- [MongoDB](https://www.mongodb.com/) - NoSQL база данных для хранения данных
+- [Mongoose](https://mongoosejs.com/) - ORM для MongoDB
+- [Passport](http://www.passportjs.org/) - для аутентификации и авторизации
+- [JWT](https://jwt.io/) - для создания токенов
+- [Nodemailer](https://github.com/nest-modules/mailer) - для отправки электронных писем
+- [Swagger](https://swagger.io/) - для автоматической генерации API документации
+- [TypeScript](https://www.typescriptlang.org/) - для улучшения типобезопасности и поддержки кода
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Установка и запуск
 
-## Installation
+1. Клонируйте репозиторий:
 
 ```bash
-$ npm install
+git clone https://github.com/ArtemMazin/blog-api
 ```
 
-## Running the app
+2. Перейдите в директорию проекта:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cd blog-api
 ```
 
-## Test
+3. Установите зависимости:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Support
+4. Запустите проект в режиме разработки:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npm run start:dev
+```
 
-## Stay in touch
+## API Документация
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+После запуска проекта, API документация будет доступна по адресу:
 
-## License
-
-Nest is [MIT licensed](LICENSE).
+[http://localhost:5000/api](http://localhost:5000/api)
