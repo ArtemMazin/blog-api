@@ -14,8 +14,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { IAuthRequest } from 'types/types';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { ProfileResponseDto, UpdateProfileDto } from './dto';
-import { User } from 'src/schemas/user.schema';
+import { ResponseUserDto, UpdateProfileDto } from './dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
@@ -24,20 +23,20 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiOkResponse({ type: ResponseUserDto })
   getProfile(@Req() req: IAuthRequest) {
     return this.usersService.findByEmail(req.user.email);
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiOkResponse({ type: ResponseUserDto })
   getUserById(@Req() req: IAuthRequest) {
     return this.usersService.findById(req.params.id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('add-favorite-article')
-  @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiOkResponse({ type: ResponseUserDto })
   addFavoriteArticle(
     @Req() req: IAuthRequest,
     @Body() body: { articleId: string },
@@ -50,7 +49,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('delete-favorite-article')
-  @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiOkResponse({ type: ResponseUserDto })
   deleteFavoriteArticle(
     @Req() req: IAuthRequest,
     @Body() body: { articleId: string },
@@ -64,7 +63,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('update-profile')
   @UseInterceptors(FileInterceptor('avatar'))
-  @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiOkResponse({ type: ResponseUserDto })
   async updateProfile(
     @Req() req: IAuthRequest,
     @Body() updateProfileDto: UpdateProfileDto,
@@ -79,7 +78,7 @@ export class UsersController {
       }),
     )
     file?: Express.Multer.File,
-  ): Promise<User> {
+  ): Promise<ResponseUserDto> {
     const userId = req.user._id.toString();
 
     return this.usersService.updateProfile(userId, updateProfileDto, file);

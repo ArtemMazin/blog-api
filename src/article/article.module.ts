@@ -6,9 +6,11 @@ import { ArticleService } from './articles.service';
 import { User, UserSchema } from 'src/schemas/user.schema';
 import { MulterModule } from '@nestjs/platform-express';
 import { articleImageOptions } from 'src/config/multer.config';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
+    UsersModule,
     MongooseModule.forFeature([{ name: Article.name, schema: ArticleSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MulterModule.register({ storage: articleImageOptions.storage }),

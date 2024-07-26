@@ -8,6 +8,7 @@ import { IncorrectDataException } from 'src/errors/IncorrectDataException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
 import { avatarConfig } from 'src/config/multer.config';
+import { ResponseUserDto } from './dto';
 
 @Injectable()
 export class UsersService {
@@ -83,11 +84,18 @@ export class UsersService {
     return await user.save();
   }
 
+  async removeArticleFromAllFavorites(articleId: string): Promise<void> {
+    await this.userModel.updateMany(
+      { favorite_articles: articleId },
+      { $pull: { favorite_articles: articleId } },
+    );
+  }
+
   async updateProfile(
     userId: string,
     updateProfileDto: Partial<User>,
     file?: Express.Multer.File,
-  ): Promise<User> {
+  ): Promise<ResponseUserDto> {
     const updateData: any = {
       ...updateProfileDto,
     };
@@ -101,6 +109,6 @@ export class UsersService {
       throw new NotFoundUserException();
     }
 
-    return await user.save();
+    return (await user.save()).toObject();
   }
 }

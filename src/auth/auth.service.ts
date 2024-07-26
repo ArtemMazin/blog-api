@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { SignUpDto, SignInDto } from './dto';
+import { SignUpDto, SignInDto, SignInResponseDto } from './dto';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
-import { User } from 'src/schemas/user.schema';
 import { IUserWithoutPassword } from 'types/types';
 import { IncorrectDataException } from 'src/errors/IncorrectDataException';
 import { UserExistException } from 'src/errors/UserExistException';
 import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ResponseUserDto } from 'src/users/dto';
 
 @Injectable()
 export class AuthService {
@@ -59,7 +59,7 @@ export class AuthService {
         maxAge: 3600000, // 1 час
       });
 
-      return { newUser, access_token: accessToken };
+      return { newUser: newUser.toObject(), access_token: accessToken };
     } catch (error) {
       throw error;
     }
@@ -96,15 +96,17 @@ export class AuthService {
   }
 
   async login(
-    user: User | null,
+    user: ResponseUserDto,
     res: Response,
-  ): Promise<{ user: User; access_token: string }> {
+  ): Promise<SignInResponseDto> {
     if (!user) {
       throw new IncorrectDataException();
     }
     try {
-      const payload = { email: user.email, sub: user._id };
-      const accessToken = this.jwtService.sign(payload);
+      const accessToken = this.jwtService.sign({
+        email: user.email,
+        sub: user._id,
+      });
 
       res.cookie('access_token', accessToken, {
         httpOnly: true,
@@ -121,16 +123,21 @@ export class AuthService {
     }
   }
 
-  async logout(res: Response) {
-    res.clearCookie('access_token');
+  async logout(res: Response): Promise<{ message: string }> {
+    try {
+      res.clearCookie('access_token');
+      return { message: 'Вы вышли из аккаунта' };
+    } catch (error) {
+      throw new Error('Не удалось выйти из аккаунта');
+    }
   }
 
   async sendPasswordResetEmail(
     email: string,
     resetToken: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     try {
-      const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+      const resetUrl = `${process.env.RESET_PASS_URL}${resetToken}`;
 
       await this.mailerService.sendMail({
         to: email,
@@ -142,13 +149,13 @@ export class AuthService {
           resetUrl,
         },
       });
-      console.log(`Письмо для сброса пароля отправлено на ${email}`);
+      return { message: `Письмо для сброса пароля отправлено на ${email}` };
     } catch (error) {
       throw new Error('Не удалось отправить письмо для сброса пароля');
     }
   }
 
-  async resetPassword(email: string) {
+  async resetPassword(email: string): Promise<{ message: string }> {
     if (!email) {
       throw new IncorrectDataException();
     }
@@ -171,11 +178,14 @@ export class AuthService {
 
       return { message: 'Ссылка для сброса пароля отправлена на вашу почту' };
     } catch (error) {
-      throw error;
+      throw new Error('Не удалось отправить письмо для сброса пароля');
     }
   }
 
-  async updatePassword(resetToken: string, newPassword: string): Promise<User> {
+  async updatePassword(
+    resetToken: string,
+    newPassword: string,
+  ): Promise<ResponseUserDto> {
     if (!resetToken || !newPassword) {
       throw new IncorrectDataException();
     }
@@ -187,14 +197,10 @@ export class AuthService {
       const payload = this.jwtService.verify(resetToken);
       const email = payload.email;
 
-      console.log('payload', payload);
-
       if (!email) {
         throw new IncorrectDataException();
       }
       const findedUser = await this.usersService.findByEmailWithPassword(email);
-
-      console.log('findedUser', findedUser);
 
       if (!findedUser || findedUser.resetPasswordToken !== resetToken) {
         throw new IncorrectDataException();
@@ -213,7 +219,7 @@ export class AuthService {
       if (error instanceof JsonWebTokenError) {
         throw new IncorrectDataException();
       }
-      throw error;
+      throw new Error('Не удалось изменить пароль');
     }
   }
 }

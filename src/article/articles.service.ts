@@ -2,17 +2,19 @@ import mongoose, { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Article } from 'src/schemas/article.schema';
-import { ArticleDto, UpdateArticleDto } from './dto';
+import { ArticleDto, ResponseArticleDto } from './dto';
 import { IArticle } from 'types/types';
 import { User } from 'src/schemas/user.schema';
 import { InvalidIdFormatException } from 'src/errors/InvalidIdFormatException';
 import { NotFoundArticleException } from 'src/errors/NotFoundArticleException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { articleImageConfig } from 'src/config/multer.config';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ArticleService {
   constructor(
+    private usersService: UsersService,
     @InjectModel(Article.name) private articleModel: Model<Article>,
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
@@ -48,9 +50,9 @@ export class ArticleService {
 
   async updateArticle(
     id: string,
-    updateArticleDto: UpdateArticleDto,
+    updateArticleDto: Partial<ArticleDto>,
     file?: Express.Multer.File,
-  ): Promise<IArticle> {
+  ): Promise<ResponseArticleDto> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
@@ -70,13 +72,13 @@ export class ArticleService {
         throw new NotFoundArticleException();
       }
 
-      return existingArticle;
+      return existingArticle.toObject();
     } catch (error) {
       throw error;
     }
   }
 
-  async findOneArticle(id: string): Promise<IArticle> {
+  async findOneArticle(id: string): Promise<ResponseArticleDto> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
@@ -89,25 +91,30 @@ export class ArticleService {
       if (article === null) {
         throw new NotFoundArticleException();
       }
-      return article;
+      return article.toObject();
     } catch (error) {
       throw new NotFoundArticleException();
     }
   }
 
-  async findAllArticles(): Promise<IArticle[]> {
+  async findAllArticles(): Promise<ResponseArticleDto[]> {
     try {
       const articles = this.articleModel.find().populate('author').exec();
       if (articles === null) {
         throw new NotFoundArticleException();
       }
-      return articles;
+      return (await articles).map((article) => {
+        return {
+          ...article.toObject(),
+          author: article.author.toObject(),
+        };
+      });
     } catch (error) {
       throw new NotFoundArticleException();
     }
   }
 
-  async deleteArticle(id: string): Promise<IArticle> {
+  async deleteArticle(id: string): Promise<ResponseArticleDto> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
@@ -121,21 +128,32 @@ export class ArticleService {
       if (deletedArticle === null) {
         throw new NotFoundArticleException();
       }
-      return deletedArticle;
+
+      // Удаляем статью из избранного у всех пользователей
+      await this.usersService.removeArticleFromAllFavorites(id);
+
+      return deletedArticle.toObject();
     } catch (error) {
       throw error;
     }
   }
 
-  async searchArticles(searchTerm: string): Promise<IArticle[]> {
+  async searchArticles(searchTerm: string): Promise<ResponseArticleDto[]> {
     const regex = new RegExp(searchTerm, 'i');
 
-    return this.articleModel
+    const articles = await this.articleModel
       .find({
         $or: [{ title: { $regex: regex } }, { content: { $regex: regex } }],
       })
       .populate('author')
       .exec();
+
+    return articles.map((article) => {
+      return {
+        ...article.toObject(),
+        author: article.author.toObject(),
+      };
+    });
   }
 
   async getArticleAuthor(id: string): Promise<string> {
@@ -156,7 +174,7 @@ export class ArticleService {
     }
   }
 
-  async findMyAllArticles(userId: string): Promise<IArticle[]> {
+  async findMyAllArticles(userId: string): Promise<ResponseArticleDto[]> {
     if (!mongoose.isValidObjectId(userId)) {
       throw new InvalidIdFormatException();
     }
@@ -171,7 +189,12 @@ export class ArticleService {
         throw new NotFoundArticleException();
       }
 
-      return myArticles;
+      return myArticles.map((article) => {
+        return {
+          ...article.toObject(),
+          author: article.author.toObject(),
+        };
+      });
     } catch (error) {
       throw error;
     }

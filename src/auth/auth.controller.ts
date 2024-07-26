@@ -15,6 +15,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Response } from 'express';
 import { IAuthRequest } from 'types/types';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ResponseUserDto } from 'src/users/dto';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -26,7 +27,7 @@ export class AuthController {
   async signUp(
     @Body() user: SignUpDto,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<SignUpResponseDto> {
     return await this.authService.signUp(user, res);
   }
 
@@ -35,10 +36,10 @@ export class AuthController {
   @ApiOkResponse({ type: SignInResponseDto })
   @HttpCode(HttpStatus.OK)
   async login(
-    @Req() req: IAuthRequest,
+    @Req() req: { user: ResponseUserDto },
     @Res({ passthrough: true }) res: Response,
-  ) {
-    return this.authService.login(req.user, res);
+  ): Promise<SignInResponseDto> {
+    return await this.authService.login(req.user, res);
   }
 
   @Post('logout')
@@ -46,14 +47,16 @@ export class AuthController {
   async logout(
     @Req() req: IAuthRequest,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<{ message: string }> {
     return this.authService.logout(res);
   }
 
   @Post('reset-password')
   @ApiOkResponse({ type: SignInResponseDto })
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() body: { email: string }) {
+  async resetPassword(
+    @Body() body: { email: string },
+  ): Promise<{ message: string }> {
     return this.authService.resetPassword(body.email);
   }
 
@@ -61,7 +64,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async resetPasswordConfirm(
     @Body() body: { token: string; newPassword: string },
-  ) {
+  ): Promise<ResponseUserDto> {
     return this.authService.updatePassword(body.token, body.newPassword);
   }
 }
