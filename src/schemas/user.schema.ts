@@ -48,6 +48,9 @@ export class User extends Document {
   @Prop()
   @IsOptional()
   resetPasswordExpires: Date;
+
+  @Prop({ default: false })
+  isPremium: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

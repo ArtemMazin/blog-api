@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePaymentDto, GetPaymentDto } from './dto';
+import { UsersService } from 'src/users/users.service';
+import { ResponseUserDto } from 'src/users/dto';
 
 @Injectable()
 export class PaymentService {
+  constructor(private usersService: UsersService) {}
+
   async createPayment(createPaymentDto: CreatePaymentDto) {
     try {
       const data = fetch(process.env.YOOKASSA_URL, {
@@ -36,9 +40,9 @@ export class PaymentService {
     }
   }
 
-  async getPayment(getPaymentDto: GetPaymentDto) {
+  async getPayment(getPaymentDto: GetPaymentDto, user: ResponseUserDto) {
     try {
-      const data = fetch(
+      const data: { status: string } = await fetch(
         `https://api.yookassa.ru/v3/payments/${getPaymentDto.id}`,
         {
           method: 'GET',
@@ -51,7 +55,13 @@ export class PaymentService {
         },
       ).then((response) => response.json());
 
-      return data;
+      if (data?.status === 'succeeded') {
+        this.usersService.updateProfile(user._id, {
+          isPremium: true,
+        });
+
+        return data;
+      }
     } catch (error) {
       throw new Error('Ошибка при получении платежа');
     }

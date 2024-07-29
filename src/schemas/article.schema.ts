@@ -21,6 +21,9 @@ export class Article extends Document {
 
   @Prop({ default: Date.now })
   updatedAt: Date;
+
+  @Prop({ default: false })
+  isPremium: boolean;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);
