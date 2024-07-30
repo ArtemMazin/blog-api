@@ -11,7 +11,7 @@ import {
 import { AuthService } from './auth.service';
 import { SignInResponseDto, SignUpDto, SignUpResponseDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { Response } from 'express';
 import { IAuthRequest } from 'types/types';
 import { ThrottlerGuard } from '@nestjs/throttler';

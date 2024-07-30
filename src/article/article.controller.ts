@@ -18,8 +18,8 @@ import { ArticleService } from './articles.service';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ArticleDto, ResponseArticleDto } from './dto';
 import { IArticle } from 'types/types';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { AuthorGuard } from 'src/auth/guards/author.guard';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { AuthorGuard } from 'src/guards/author.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResponseUserDto } from 'src/users/dto';
 
@@ -46,8 +46,9 @@ export class ArticlesController {
   @ApiOkResponse({ type: ArticleDto })
   async getOneArticle(
     @Param('id') params: string,
+    @Req() req: { user?: ResponseUserDto },
   ): Promise<ResponseArticleDto> {
-    return await this.service.findOneArticle(params);
+    return await this.service.findOneArticle(params, req.user);
   }
 
   @UseGuards(JwtAuthGuard)

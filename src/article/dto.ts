@@ -26,6 +26,13 @@ export class ArticleDto {
   })
   @IsOptional()
   image?: Express.Multer.File;
+
+  @ApiProperty({
+    example: 'false',
+    description: 'Is premium',
+  })
+  @IsNotEmpty()
+  isPremium: 'true' | 'false';
 }
 
 export class ResponseArticleDto {
@@ -84,4 +91,11 @@ export class ResponseArticleDto {
   @IsNotEmpty()
   @IsString()
   updatedAt: Date;
+
+  @ApiProperty({
+    example: 'false',
+    description: 'Is premium',
+  })
+  @IsNotEmpty()
+  isPremium: boolean;
 }

@@ -1,5 +1,5 @@
 import mongoose, { Model } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Article } from 'src/schemas/article.schema';
 import { ArticleDto, ResponseArticleDto } from './dto';
@@ -10,6 +10,7 @@ import { NotFoundArticleException } from 'src/errors/NotFoundArticleException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { articleImageConfig } from 'src/config/multer.config';
 import { UsersService } from 'src/users/users.service';
+import { ResponseUserDto } from 'src/users/dto';
 
 @Injectable()
 export class ArticleService {
@@ -35,12 +36,19 @@ export class ArticleService {
         throw new NotFoundUserException();
       }
 
+      if (createArticleDto.isPremium === 'true' && !user.isPremium) {
+        throw new ForbiddenException(
+          'Только премиум-пользователи могут создавать премиум-статьи',
+        );
+      }
+
       const createdArticle = new this.articleModel({
         ...createArticleDto,
         author: user,
         image: file
           ? `${articleImageConfig.destination}${file.filename}`
           : null,
+        isPremium: createArticleDto.isPremium,
       });
       return createdArticle.save();
     } catch (error) {
@@ -78,7 +86,10 @@ export class ArticleService {
     }
   }
 
-  async findOneArticle(id: string): Promise<ResponseArticleDto> {
+  async findOneArticle(
+    id: string,
+    user?: ResponseUserDto,
+  ): Promise<ResponseArticleDto> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
@@ -91,6 +102,13 @@ export class ArticleService {
       if (article === null) {
         throw new NotFoundArticleException();
       }
+
+      if (article.isPremium && (!user || !user.isPremium)) {
+        throw new ForbiddenException(
+          'Эта статья доступна только для премиум-пользователей',
+        );
+      }
+
       return article.toObject();
     } catch (error) {
       throw new NotFoundArticleException();

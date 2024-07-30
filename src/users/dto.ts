@@ -131,4 +131,11 @@ export class ResponseUserDto {
   @IsDate()
   @IsNotEmpty()
   createdAt: Date;
+
+  @ApiProperty({
+    example: false,
+    description: 'User is premium',
+  })
+  @IsNotEmpty()
+  isPremium: boolean;
 }
