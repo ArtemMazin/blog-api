@@ -22,6 +22,7 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { AuthorGuard } from 'src/guards/author.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResponseUserDto } from 'src/users/dto';
+import { OptionalJwtAuthGuard } from 'src/guards/optional-jwt-auth.guard';
 
 @Controller('article')
 export class ArticlesController {
@@ -42,6 +43,7 @@ export class ArticlesController {
     return await this.service.findMyAllArticles(req.user._id.toString());
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('find/:id')
   @ApiOkResponse({ type: ArticleDto })
   async getOneArticle(

@@ -88,7 +88,7 @@ export class ArticleService {
 
   async findOneArticle(
     id: string,
-    user?: ResponseUserDto,
+    userData?: ResponseUserDto,
   ): Promise<ResponseArticleDto> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
@@ -99,19 +99,38 @@ export class ArticleService {
         .findById(id)
         .populate('author')
         .exec();
-      if (article === null) {
+
+      if (!article) {
         throw new NotFoundArticleException();
       }
 
-      if (article.isPremium && (!user || !user.isPremium)) {
-        throw new ForbiddenException(
-          'Эта статья доступна только для премиум-пользователей',
-        );
+      // Проверка доступа к премиум-статье
+      if (!!article.isPremium) {
+        await this.checkPremiumAccess(userData);
       }
 
       return article.toObject();
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       throw new NotFoundArticleException();
+    }
+  }
+
+  private async checkPremiumAccess(userData?: ResponseUserDto): Promise<void> {
+    if (!userData) {
+      throw new ForbiddenException(
+        'Эта статья доступна только для премиум-пользователей',
+      );
+    }
+
+    const user = await this.userModel.findById(userData._id).lean().exec();
+
+    if (!user || !user.isPremium) {
+      throw new ForbiddenException(
+        'Эта статья доступна только для премиум-пользователей',
+      );
     }
   }
 
