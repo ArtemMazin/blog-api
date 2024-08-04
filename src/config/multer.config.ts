@@ -12,7 +12,7 @@ export const articleImageOptions = {
     },
     filename: (req, file, cb) => {
       const fileExtension = extname(file.originalname);
-      const fileName = `${Date.now()}${fileExtension}`;
+      const fileName = `article_${Date.now()}${fileExtension}`;
       cb(null, fileName);
     },
   }),

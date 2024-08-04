@@ -16,10 +16,13 @@ import { PaymentModule } from './payment/payment.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', 'uploads'),
-      serveRoot: '/uploads',
+      rootPath:
+        process.env.NODE_ENV === 'production'
+          ? process.env.UPLOAD_ROOT_PATH
+          : join(__dirname, '..', '..', process.env.UPLOAD_ROOT_PATH),
+      serveRoot: process.env.SERVE_ROOT,
     }),
-    ConfigModule.forRoot({ envFilePath: `.${process.env.NODE_ENV}.env` }),
+    ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}` }),
     MongooseModule.forRoot(process.env.MONGO_URI),
     ThrottlerModule.forRoot([
       {
