@@ -7,7 +7,6 @@ import { IUserWithoutPassword } from 'types/types';
 import { IncorrectDataException } from 'src/errors/IncorrectDataException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
-import { avatarConfig } from 'src/config/multer.config';
 import { ResponseUserDto } from './dto';
 
 @Injectable()
@@ -100,7 +99,7 @@ export class UsersService {
       ...updateProfileDto,
     };
     if (file) {
-      updateData.avatar = `${avatarConfig.destination}${file.filename}`;
+      updateData.avatar = file.filename;
     }
     const user = await this.userModel.findByIdAndUpdate(userId, updateData, {
       new: true,

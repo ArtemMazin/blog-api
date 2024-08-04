@@ -1,8 +1,18 @@
+import { join, extname } from 'path';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import * as dotenv from 'dotenv';
+
+// Загрузка переменных окружения
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+
+// Определение корневой директории для загрузок
+const uploadRoot =
+  process.env.NODE_ENV === 'production'
+    ? process.env.UPLOAD_ROOT_PATH
+    : join(__dirname, '..', '..', process.env.UPLOAD_ROOT_PATH);
 
 export const articleImageConfig = {
-  destination: 'uploads/articles/',
+  destination: uploadRoot,
 };
 
 export const articleImageOptions = {
@@ -12,14 +22,14 @@ export const articleImageOptions = {
     },
     filename: (req, file, cb) => {
       const fileExtension = extname(file.originalname);
-      const fileName = `article_${Date.now()}${fileExtension}`;
+      const fileName = `articles/article_${Date.now()}${fileExtension}`;
       cb(null, fileName);
     },
   }),
 };
 
 export const avatarConfig = {
-  destination: 'uploads/avatars/',
+  destination: uploadRoot,
 };
 
 export const avatarOptions = {
@@ -29,7 +39,7 @@ export const avatarOptions = {
     },
     filename: (req, file, cb) => {
       const fileExtension = extname(file.originalname);
-      const fileName = `avatar_${Date.now()}${fileExtension}`;
+      const fileName = `avatars/avatar_${Date.now()}${fileExtension}`;
       cb(null, fileName);
     },
   }),
