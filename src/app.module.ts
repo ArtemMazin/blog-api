@@ -12,6 +12,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 import { PaymentModule } from './payment/payment.module';
+import { BaseArticle, BaseArticleSchema } from './schemas/base-article.schema';
+import { CharacterArticleModule } from './character-article/character-article.module';
 
 @Module({
   imports: [
@@ -24,6 +26,12 @@ import { PaymentModule } from './payment/payment.module';
     }),
     ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}` }),
     MongooseModule.forRoot(process.env.MONGO_URI),
+    MongooseModule.forFeature([
+      {
+        name: BaseArticle.name,
+        schema: BaseArticleSchema,
+      },
+    ]),
     ThrottlerModule.forRoot([
       {
         ttl: 60,
@@ -52,11 +60,12 @@ import { PaymentModule } from './payment/payment.module';
         },
       },
     }),
-    ArticleModule,
+    // ArticleModule,
     UsersModule,
     AuthModule,
     UsersModule,
     PaymentModule,
+    CharacterArticleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,7 +2,6 @@ import mongoose, { Model } from 'mongoose';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Article } from 'src/schemas/article.schema';
-import { ArticleDto, ResponseArticleDto } from './dto';
 import { IArticle } from 'types/types';
 import { User } from 'src/schemas/user.schema';
 import { InvalidIdFormatException } from 'src/errors/InvalidIdFormatException';
@@ -10,6 +9,7 @@ import { NotFoundArticleException } from 'src/errors/NotFoundArticleException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UsersService } from 'src/users/users.service';
 import { ResponseUserDto } from 'src/users/dto';
+import { ArticleDto, ResponseArticleDto } from 'src/base-article/dto';
 
 @Injectable()
 export class ArticleService {

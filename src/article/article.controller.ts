@@ -16,13 +16,13 @@ import {
 } from '@nestjs/common';
 import { ArticleService } from './articles.service';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { ArticleDto, ResponseArticleDto } from './dto';
 import { IArticle } from 'types/types';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { AuthorGuard } from 'src/guards/author.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResponseUserDto } from 'src/users/dto';
 import { OptionalJwtAuthGuard } from 'src/guards/optional-jwt-auth.guard';
+import { ResponseArticleDto, ArticleDto } from 'src/base-article/dto';
 
 @Controller('article')
 export class ArticlesController {
