@@ -67,10 +67,11 @@ export abstract class BaseArticleController<T, CreateDto, ResponseDto> {
     file: Express.Multer.File,
   ): Promise<T> {
     const userId = req.user._id.toString();
+
     return await this.service.createArticle(createArticleDto, userId, file);
   }
 
-  // @UseGuards(JwtAuthGuard, AuthorGuard)
+  @UseGuards(JwtAuthGuard, AuthorGuard)
   @Patch('update/:id')
   @UseInterceptors(FileInterceptor('image'))
   @ApiOkResponse({ type: Object })
@@ -92,7 +93,7 @@ export abstract class BaseArticleController<T, CreateDto, ResponseDto> {
     return await this.service.updateArticle(id, updateArticleDto, file);
   }
 
-  // @UseGuards(JwtAuthGuard, AuthorGuard)
+  @UseGuards(JwtAuthGuard, AuthorGuard)
   @Delete('delete/:id')
   async deleteArticle(@Param('id') params: string): Promise<ResponseDto> {
     return this.service.deleteArticle(params);

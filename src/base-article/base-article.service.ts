@@ -9,7 +9,7 @@ import { ResponseUserDto } from 'src/users/dto';
 import { BaseArticle } from 'src/schemas/base-article.schema';
 
 @Injectable()
-export class BaseArticleService<T extends BaseArticle> {
+export abstract class BaseArticleService<T extends BaseArticle> {
   constructor(
     protected usersService: UsersService,
     protected articleModel: Model<T>,
@@ -193,19 +193,7 @@ export class BaseArticleService<T extends BaseArticle> {
     }
   }
 
-  private async checkPremiumAccess(userData?: ResponseUserDto): Promise<void> {
-    if (!userData) {
-      throw new ForbiddenException(
-        'Эта статья доступна только для премиум-пользователей',
-      );
-    }
-
-    const user = await this.userModel.findById(userData._id).lean().exec();
-
-    if (!user || !user.isPremium) {
-      throw new ForbiddenException(
-        'Эта статья доступна только для премиум-пользователей',
-      );
-    }
-  }
+  protected abstract checkPremiumAccess(
+    userData?: ResponseUserDto,
+  ): Promise<void>;
 }

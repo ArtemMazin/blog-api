@@ -9,7 +9,7 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 const uploadRoot =
   process.env.NODE_ENV === 'production'
     ? process.env.UPLOAD_ROOT_PATH
-    : join(__dirname, '..', '..', process.env.UPLOAD_ROOT_PATH);
+    : join(__dirname, '..', '..', '..', process.env.UPLOAD_ROOT_PATH);
 
 export const articleImageConfig = {
   destination: uploadRoot,
