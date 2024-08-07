@@ -7,9 +7,15 @@ import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UsersService } from 'src/users/users.service';
 import { ResponseUserDto } from 'src/users/dto';
 import { BaseArticle } from 'src/schemas/base-article.schema';
+import { calculateReadingTime } from 'src/common/constants';
+import { CreateArticleDto, UpdateArticleDto } from './dto';
 
 @Injectable()
-export abstract class BaseArticleService<T extends BaseArticle> {
+export abstract class BaseArticleService<
+  T extends BaseArticle,
+  CreateDto extends CreateArticleDto,
+  UpdateDto extends UpdateArticleDto,
+> {
   constructor(
     protected usersService: UsersService,
     protected articleModel: Model<T>,
@@ -17,18 +23,12 @@ export abstract class BaseArticleService<T extends BaseArticle> {
   ) {}
 
   async createArticle(
-    createArticleDto: any,
-    userId: string,
+    createArticleDto: CreateDto,
+    user: ResponseUserDto,
     file: Express.Multer.File,
   ): Promise<T> {
-    if (!mongoose.isValidObjectId(userId)) {
-      throw new InvalidIdFormatException();
-    }
-
     try {
-      const user = await this.userModel.findById(userId);
-
-      if (user === null) {
+      if (!user) {
         throw new NotFoundUserException();
       }
 
@@ -38,11 +38,16 @@ export abstract class BaseArticleService<T extends BaseArticle> {
         );
       }
 
+      const readingTime = calculateReadingTime(createArticleDto.content);
+
       const createdArticle = new this.articleModel({
         ...createArticleDto,
+        title: createArticleDto.title.trim(),
+        content: createArticleDto.content.trim(),
         author: user,
         image: file ? file.filename : null,
         isPremium: createArticleDto.isPremium,
+        readingTime,
       });
       return createdArticle.save();
     } catch (error) {
@@ -52,11 +57,22 @@ export abstract class BaseArticleService<T extends BaseArticle> {
 
   async updateArticle(
     id: string,
-    updateArticleDto: any,
+    user: ResponseUserDto,
+    updateArticleDto?: UpdateDto,
     file?: Express.Multer.File,
   ): Promise<T> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
+    }
+
+    if (!user) {
+      throw new NotFoundUserException();
+    }
+
+    if (updateArticleDto.isPremium === 'true' && !user.isPremium) {
+      throw new ForbiddenException(
+        'Только премиум-пользователи могут создавать премиум-статьи',
+      );
     }
 
     try {

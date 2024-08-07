@@ -25,6 +25,9 @@ export class BaseArticle extends Document {
 
   @Prop({ default: false })
   isPremium: boolean;
+
+  @Prop({ default: 0 })
+  readingTime: number;
 }
 
 export const BaseArticleSchema = SchemaFactory.createForClass(BaseArticle);

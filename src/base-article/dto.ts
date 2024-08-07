@@ -2,34 +2,51 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ResponseUserDto } from 'src/users/dto';
 
-export class ArticleDto {
+export class CreateArticleDto {
   @ApiProperty({
-    example: 'Title',
-    description: 'Title of article',
+    example: 'Фродо Бэггинс',
+    description: 'Название статьи',
   })
   @IsNotEmpty()
   @IsString()
   title: string;
 
   @ApiProperty({
-    example: 'Content',
-    description: 'Content of article',
+    example: 'Фродо Бэггинс - это главный герой книги "Хоббит"...',
+    description: 'Содержание статьи',
   })
   @IsNotEmpty()
   @IsString()
   content: string;
 
   @ApiProperty({
-    type: 'file',
-    format: 'binary',
-    description: 'Image of article',
+    example: '"false"',
+    description: 'Статус премиум-доступа',
+  })
+  @IsNotEmpty()
+  isPremium: 'true' | 'false';
+}
+
+export class UpdateArticleDto {
+  @ApiProperty({
+    example: 'Фродо Бэггинс',
+    description: 'Название статьи',
   })
   @IsOptional()
-  image?: Express.Multer.File;
+  @IsString()
+  title?: string;
 
   @ApiProperty({
-    example: 'false',
-    description: 'Is premium',
+    example: 'Фродо Бэггинс - это главный герой книги "Хоббит"...',
+    description: 'Содержание статьи',
+  })
+  @IsOptional()
+  @IsString()
+  content?: string;
+
+  @ApiProperty({
+    example: '"false"',
+    description: 'Статус премиум-доступа',
   })
   @IsNotEmpty()
   isPremium: 'true' | 'false';
