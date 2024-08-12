@@ -5,10 +5,11 @@ import { InvalidIdFormatException } from 'src/errors/InvalidIdFormatException';
 import { NotFoundArticleException } from 'src/errors/NotFoundArticleException';
 import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UsersService } from 'src/users/users.service';
-import { ResponseUserDto } from 'src/users/dto';
 import { BaseArticle } from 'src/schemas/base-article.schema';
 import { calculateReadingTime } from 'src/common/constants';
-import { CreateArticleDto, UpdateArticleDto } from './dto';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
+import { ResponseUserDto } from 'src/users/dto/response-user.dto';
 
 @Injectable()
 export abstract class BaseArticleService<
@@ -46,7 +47,7 @@ export abstract class BaseArticleService<
         content: createArticleDto.content.trim(),
         author: user,
         image: file ? file.filename : null,
-        isPremium: createArticleDto.isPremium,
+        isPremium: Boolean(createArticleDto.isPremium),
         readingTime,
       });
       return createdArticle.save();
@@ -75,12 +76,18 @@ export abstract class BaseArticleService<
       );
     }
 
-    try {
-      const updateData: any = { ...updateArticleDto };
+    const readingTime = calculateReadingTime(updateArticleDto.content);
 
-      if (file) {
-        updateData.image = file.filename;
-      }
+    try {
+      const updateData = {
+        ...updateArticleDto,
+        title: updateArticleDto.title.trim(),
+        content: updateArticleDto.content.trim(),
+        author: user,
+        image: file ? file.filename : null,
+        isPremium: Boolean(updateArticleDto.isPremium),
+        readingTime,
+      };
 
       const existingArticle = await this.articleModel
         .findByIdAndUpdate(id, updateData, { new: true })

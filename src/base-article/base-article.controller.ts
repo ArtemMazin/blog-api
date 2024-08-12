@@ -13,12 +13,19 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { AuthorGuard } from 'src/guards/author.guard';
 import { OptionalJwtAuthGuard } from 'src/guards/optional-jwt-auth.guard';
 import { ResponseUserDto } from 'src/users/dto';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
 export abstract class BaseArticleController<T, CreateDto, ResponseDto> {
   constructor(protected readonly service: any) {}
@@ -51,7 +58,11 @@ export abstract class BaseArticleController<T, CreateDto, ResponseDto> {
   @UseGuards(JwtAuthGuard)
   @Post('create')
   @UseInterceptors(FileInterceptor('image'))
-  @ApiCreatedResponse({ type: Object })
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Создать новую статью' })
+  @ApiBody({
+    type: CreateArticleDto,
+  })
   async createArticle(
     @Body() createArticleDto: CreateDto,
     @Req() req: { user: ResponseUserDto },
@@ -74,7 +85,11 @@ export abstract class BaseArticleController<T, CreateDto, ResponseDto> {
   @UseGuards(JwtAuthGuard, AuthorGuard)
   @Patch('update/:id')
   @UseInterceptors(FileInterceptor('image'))
-  @ApiOkResponse({ type: Object })
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Обновить статью' })
+  @ApiBody({
+    type: UpdateArticleDto,
+  })
   async updateArticle(
     @Param('id') id: string,
     @Body() updateArticleDto: Partial<CreateDto>,

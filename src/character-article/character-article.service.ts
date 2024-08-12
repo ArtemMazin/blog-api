@@ -5,10 +5,10 @@ import { Injectable } from '@nestjs/common';
 import { BaseArticleService } from 'src/base-article/base-article.service';
 import { CharacterArticle } from 'src/schemas/character.schema';
 import { User } from 'src/schemas/user.schema';
-import { BaseArticle } from 'src/schemas/base-article.schema';
-import { ResponseUserDto } from 'src/users/dto';
 import { InvalidPremiumStatus } from 'src/errors/InvalidPremiumStatus';
-import { CreateCharacterArticleDto, UpdateCharacterArticleDto } from './dto';
+import { CreateCharacterArticleDto } from './dto/create-character-article.dto';
+import { UpdateCharacterArticleDto } from './dto/update-character-article.dto';
+import { ResponseUserDto } from 'src/users/dto/response-user.dto';
 
 @Injectable()
 export class CharacterArticleService extends BaseArticleService<
@@ -17,7 +17,7 @@ export class CharacterArticleService extends BaseArticleService<
   UpdateCharacterArticleDto
 > {
   constructor(
-    @InjectModel(BaseArticle.name)
+    @InjectModel(CharacterArticle.name)
     characterArticleModel: Model<CharacterArticle>,
     @InjectModel(User.name) userModel: Model<User>,
     usersService: UsersService,

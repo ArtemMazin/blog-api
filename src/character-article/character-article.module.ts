@@ -7,11 +7,6 @@ import {
   CharacterArticle,
   CharacterArticleSchema,
 } from 'src/schemas/character.schema';
-
-import {
-  BaseArticle,
-  BaseArticleSchema,
-} from 'src/schemas/base-article.schema';
 import { User, UserSchema } from 'src/schemas/user.schema';
 import { MulterModule } from '@nestjs/platform-express';
 import { articleImageOptions } from 'src/config/multer.config';
@@ -19,15 +14,8 @@ import { AuthorGuard } from 'src/guards/author.guard';
 
 @Module({
   imports: [
-    MongooseModule.forFeatureAsync([
-      {
-        name: BaseArticle.name,
-        useFactory: () => {
-          const schema = BaseArticleSchema;
-          schema.discriminator(CharacterArticle.name, CharacterArticleSchema);
-          return schema;
-        },
-      },
+    MongooseModule.forFeature([
+      { name: CharacterArticle.name, schema: CharacterArticleSchema },
     ]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MulterModule.register({ storage: articleImageOptions.storage }),
