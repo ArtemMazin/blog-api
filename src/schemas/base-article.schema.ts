@@ -3,7 +3,17 @@ import { Document, Types } from 'mongoose';
 import { User } from './user.schema';
 
 //Это говорит Mongoose использовать поле kind для различения типов документов
-@Schema({ timestamps: true, discriminatorKey: 'kind' })
+@Schema({
+  timestamps: true,
+  toObject: {
+    // Преобразование _id в строку, иначе при вызове plainToClass _id меняет значение
+    transform: (doc, ret) => {
+      ret._id = ret._id.toString();
+      return ret;
+    },
+  },
+  discriminatorKey: 'kind',
+})
 export class BaseArticle extends Document {
   @Prop({ required: true })
   title: string;
@@ -16,12 +26,6 @@ export class BaseArticle extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   author: User;
-
-  @Prop({ default: Date.now })
-  createdAt: Date;
-
-  @Prop({ default: Date.now })
-  updatedAt: Date;
 
   @Prop({ default: false })
   isPremium: boolean;

@@ -3,18 +3,15 @@ import { IsEmail, IsOptional } from 'class-validator';
 import { Document } from 'mongoose';
 
 @Schema({
-  toJSON: {
-    transform: (doc, ret) => {
-      delete ret.password;
-      return ret;
-    },
-  },
+  timestamps: true,
   toObject: {
+    // Преобразование _id в строку, иначе при вызове plainToClass _id меняет значение
     transform: (doc, ret) => {
-      delete ret.password;
+      ret._id = ret._id.toString();
       return ret;
     },
   },
+  discriminatorKey: 'kind',
 })
 export class User extends Document {
   @Prop({ required: true })
@@ -37,9 +34,6 @@ export class User extends Document {
   @Prop()
   @IsOptional()
   about: string;
-
-  @Prop({ default: Date.now })
-  createdAt: Date;
 
   @Prop()
   @IsOptional()

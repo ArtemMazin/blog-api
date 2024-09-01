@@ -1,24 +1,48 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ResponseUserDto {
-  @ApiProperty({ example: '60d5ecb54e7d5a001f5d4f2b' })
-  _id: string;
+  @ApiProperty({
+    description: 'ID пользователя',
+    example: '60d5ecb74f421b2d1c8829fb',
+  })
+  readonly _id: string;
 
-  @ApiProperty({ example: 'John Doe' })
-  name: string;
+  @ApiProperty({
+    description: 'Имя пользователя',
+    example: 'Люк Скайуокер',
+  })
+  readonly name: string;
 
-  @ApiProperty({ example: 'john@example.com' })
-  email: string;
+  @ApiProperty({
+    description: 'Email пользователя',
+    example: 'luke@rebellion.com',
+  })
+  readonly email: string;
 
-  @ApiProperty({ example: 'path/to/avatar.jpg' })
-  avatar?: string;
+  @ApiProperty({
+    description: 'Аватар пользователя',
+    example: 'avatar.jpg',
+    required: false,
+  })
+  readonly avatar?: string;
 
-  @ApiProperty({ example: 'About me...' })
-  about?: string;
+  @ApiProperty({
+    description: 'Информация о пользователе',
+    example: 'Джедай и пилот X-wing',
+    required: false,
+  })
+  readonly about?: string;
 
-  @ApiProperty({ example: '2023-06-15T10:00:00.000Z' })
-  createdAt: Date;
+  @ApiProperty({
+    description: 'Список ID избранных статей',
+    example: ['60d5ecb74f421b2d1c8829fb', '60d5ecb74f421b2d1c8829fc'],
+    type: [String],
+  })
+  readonly favorite_articles: string[];
 
-  @ApiProperty({ example: false })
-  isPremium: boolean;
+  @ApiProperty({
+    description: 'Статус премиум-подписки',
+    example: false,
+  })
+  readonly isPremium: boolean;
 }

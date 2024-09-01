@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { SignUpDto, SignInDto, SignInResponseDto } from './dto';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
@@ -10,6 +9,12 @@ import { UserExistException } from 'src/errors/UserExistException';
 import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ResponseUserDto } from 'src/users/dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  MessageResponseDto,
+  RegisterDto,
+} from './dto';
 
 @Injectable()
 export class AuthService {
@@ -19,19 +24,10 @@ export class AuthService {
     private readonly mailerService: MailerService,
   ) {}
 
-  async signUp(user: SignUpDto, res: Response) {
-    if (
-      !user.email ||
-      !user.password ||
-      !user.name ||
-      user.password.length < 6
-    ) {
-      throw new IncorrectDataException();
-    }
-
+  async signUp(userData: RegisterDto, res: Response) {
     try {
       const UserExistExceptions = await this.usersService.findByEmail(
-        user.email,
+        userData.email,
       );
 
       if (UserExistExceptions) {
@@ -39,9 +35,9 @@ export class AuthService {
       }
 
       const newUser = await this.usersService.createUser({
-        name: user.name,
-        email: user.email,
-        password: await argon2.hash(user.password),
+        name: userData.name,
+        email: userData.email,
+        password: await argon2.hash(userData.password),
       });
 
       if (newUser === null) {
@@ -59,14 +55,14 @@ export class AuthService {
         maxAge: 3600000, // 1 час
       });
 
-      return { newUser: newUser.toObject(), access_token: accessToken };
+      return { user: newUser.toObject(), access_token: accessToken };
     } catch (error) {
       throw error;
     }
   }
 
   async validateUser(
-    signInDto: SignInDto,
+    signInDto: LoginDto,
   ): Promise<IUserWithoutPassword | null> {
     if (!signInDto.email || !signInDto.password) {
       throw new IncorrectDataException();
@@ -95,10 +91,7 @@ export class AuthService {
     }
   }
 
-  async login(
-    user: ResponseUserDto,
-    res: Response,
-  ): Promise<SignInResponseDto> {
+  async login(user: ResponseUserDto, res: Response): Promise<LoginResponseDto> {
     if (!user) {
       throw new IncorrectDataException();
     }
@@ -123,7 +116,7 @@ export class AuthService {
     }
   }
 
-  async logout(res: Response): Promise<{ message: string }> {
+  async logout(res: Response): Promise<MessageResponseDto> {
     try {
       res.clearCookie('access_token');
       return { message: 'Вы вышли из аккаунта' };
@@ -135,7 +128,7 @@ export class AuthService {
   async sendPasswordResetEmail(
     email: string,
     resetToken: string,
-  ): Promise<{ message: string }> {
+  ): Promise<MessageResponseDto> {
     try {
       const resetUrl = `${process.env.RESET_PASS_URL}${resetToken}`;
 
@@ -155,7 +148,7 @@ export class AuthService {
     }
   }
 
-  async resetPassword(email: string): Promise<{ message: string }> {
+  async resetPassword(email: string): Promise<MessageResponseDto> {
     if (!email) {
       throw new IncorrectDataException();
     }

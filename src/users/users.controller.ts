@@ -14,7 +14,11 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { IAuthRequest } from 'types/types';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { ResponseUserDto, UpdateProfileDto } from './dto';
+import {
+  ResponseUserDto,
+  ToggleFavoriteArticleDto,
+  UpdateProfileDto,
+} from './dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
@@ -39,11 +43,11 @@ export class UsersController {
   @ApiOkResponse({ type: ResponseUserDto })
   addFavoriteArticle(
     @Req() req: IAuthRequest,
-    @Body() body: { articleId: string },
+    @Body() addFavoriteArticleDto: ToggleFavoriteArticleDto,
   ) {
     return this.usersService.addFavoriteArticle(
       req.user._id.toString(),
-      body.articleId,
+      addFavoriteArticleDto.articleId,
     );
   }
 
@@ -52,11 +56,11 @@ export class UsersController {
   @ApiOkResponse({ type: ResponseUserDto })
   deleteFavoriteArticle(
     @Req() req: IAuthRequest,
-    @Body() body: { articleId: string },
+    @Body() removeFavoriteArticleDto: ToggleFavoriteArticleDto,
   ) {
     return this.usersService.removeFavoriteArticle(
       req.user._id.toString(),
-      body.articleId,
+      removeFavoriteArticleDto.articleId,
     );
   }
 

@@ -9,13 +9,19 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignInResponseDto, SignUpDto, SignUpResponseDto } from './dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { Response } from 'express';
 import { IAuthRequest } from 'types/types';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ResponseUserDto } from 'src/users/dto';
+import {
+  LoginResponseDto,
+  MessageResponseDto,
+  RegisterDto,
+  ResetPasswordDto,
+  UpdatePasswordDto,
+} from './dto';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -23,22 +29,22 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('sign-up')
-  @ApiCreatedResponse({ type: SignUpResponseDto })
+  @ApiCreatedResponse({ type: LoginResponseDto })
   async signUp(
-    @Body() user: SignUpDto,
+    @Body() user: RegisterDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<SignUpResponseDto> {
+  ): Promise<LoginResponseDto> {
     return await this.authService.signUp(user, res);
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('sign-in')
-  @ApiOkResponse({ type: SignInResponseDto })
+  @ApiOkResponse({ type: LoginResponseDto })
   @HttpCode(HttpStatus.OK)
   async login(
     @Req() req: { user: ResponseUserDto },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<SignInResponseDto> {
+  ): Promise<LoginResponseDto> {
     return await this.authService.login(req.user, res);
   }
 
@@ -47,24 +53,27 @@ export class AuthController {
   async logout(
     @Req() req: IAuthRequest,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ message: string }> {
+  ): Promise<MessageResponseDto> {
     return this.authService.logout(res);
   }
 
   @Post('reset-password')
-  @ApiOkResponse({ type: SignInResponseDto })
+  @ApiOkResponse({ type: MessageResponseDto })
   @HttpCode(HttpStatus.OK)
   async resetPassword(
-    @Body() body: { email: string },
-  ): Promise<{ message: string }> {
-    return this.authService.resetPassword(body.email);
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<MessageResponseDto> {
+    return this.authService.resetPassword(resetPasswordDto.email);
   }
 
   @Post('reset-password-confirm')
   @HttpCode(HttpStatus.OK)
   async resetPasswordConfirm(
-    @Body() body: { token: string; newPassword: string },
+    @Body() updatePasswordDto: UpdatePasswordDto,
   ): Promise<ResponseUserDto> {
-    return this.authService.updatePassword(body.token, body.newPassword);
+    return this.authService.updatePassword(
+      updatePasswordDto.resetToken,
+      updatePasswordDto.newPassword,
+    );
   }
 }
