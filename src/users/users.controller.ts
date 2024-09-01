@@ -5,6 +5,7 @@ import {
   Get,
   ParseFilePipe,
   Patch,
+  Param,
   Req,
   UploadedFile,
   UseGuards,
@@ -13,34 +14,54 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { IAuthRequest } from 'types/types';
-import { ApiOkResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import {
   ResponseUserDto,
   ToggleFavoriteArticleDto,
   UpdateProfileDto,
 } from './dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiCommonResponses,
+  ApiUserResponses,
+} from 'src/decorators/api-responses.decorator';
 
+@ApiTags('Пользователи')
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получить профиль текущего пользователя' })
   @ApiOkResponse({ type: ResponseUserDto })
+  @ApiCommonResponses()
   getProfile(@Req() req: IAuthRequest) {
     return this.usersService.findByEmail(req.user.email);
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: ResponseUserDto })
-  getUserById(@Req() req: IAuthRequest) {
-    return this.usersService.findById(req.params.id);
+  @ApiOperation({ summary: 'Получить пользователя по ID' })
+  @ApiParam({ name: 'id', description: 'ID пользователя' })
+  @ApiUserResponses()
+  getUserById(@Param('id') id: string) {
+    return this.usersService.findById(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('add-favorite-article')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Добавить статью в избранное' })
   @ApiOkResponse({ type: ResponseUserDto })
+  @ApiCommonResponses()
   addFavoriteArticle(
     @Req() req: IAuthRequest,
     @Body() addFavoriteArticleDto: ToggleFavoriteArticleDto,
@@ -53,7 +74,10 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('delete-favorite-article')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Удалить статью из избранного' })
   @ApiOkResponse({ type: ResponseUserDto })
+  @ApiCommonResponses()
   deleteFavoriteArticle(
     @Req() req: IAuthRequest,
     @Body() removeFavoriteArticleDto: ToggleFavoriteArticleDto,
@@ -67,7 +91,11 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('update-profile')
   @UseInterceptors(FileInterceptor('avatar'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Обновить профиль пользователя' })
+  @ApiConsumes('multipart/form-data')
   @ApiOkResponse({ type: ResponseUserDto })
+  @ApiCommonResponses()
   async updateProfile(
     @Req() req: IAuthRequest,
     @Body() updateProfileDto: UpdateProfileDto,
@@ -84,7 +112,6 @@ export class UsersController {
     file?: Express.Multer.File,
   ): Promise<ResponseUserDto> {
     const userId = req.user._id.toString();
-
     return this.usersService.updateProfile(userId, updateProfileDto, file);
   }
 }

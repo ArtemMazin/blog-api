@@ -1,73 +1,93 @@
 import {
   Body,
   Controller,
-  HttpCode,
-  HttpStatus,
   Post,
   Req,
   Res,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { Response } from 'express';
-import { IAuthRequest } from 'types/types';
-import { ThrottlerGuard } from '@nestjs/throttler';
-import { ResponseUserDto } from 'src/users/dto';
+import { Response, Request } from 'express';
 import {
-  LoginResponseDto,
-  MessageResponseDto,
+  LoginDto,
   RegisterDto,
   ResetPasswordDto,
   UpdatePasswordDto,
 } from './dto';
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
+import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { ResponseUserDto } from '../users/dto';
+import { ThrottlerGuard } from '@nestjs/throttler';
+import {
+  ApiAuthResponses,
+  ApiCommonResponses,
+  ApiRegisterResponses,
+  ApiSuccessResponse,
+} from 'src/decorators/api-responses.decorator';
 
+@ApiTags('Аутентификация')
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('sign-up')
-  @ApiCreatedResponse({ type: LoginResponseDto })
+  @ApiOperation({ summary: 'Регистрация нового пользователя' })
+  @ApiBody({ type: RegisterDto })
+  @ApiRegisterResponses()
   async signUp(
     @Body() user: RegisterDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<LoginResponseDto> {
+  ): Promise<ResponseUserDto> {
     return await this.authService.signUp(user, res);
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('sign-in')
-  @ApiOkResponse({ type: LoginResponseDto })
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Авторизация пользователя' })
+  @ApiBody({ type: LoginDto })
+  @ApiAuthResponses()
   async login(
-    @Req() req: { user: ResponseUserDto },
+    @Req() req: Request & { user: ResponseUserDto },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<LoginResponseDto> {
+  ): Promise<ResponseUserDto> {
     return await this.authService.login(req.user, res);
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Выход пользователя' })
+  @ApiCommonResponses()
+  @ApiSuccessResponse()
   async logout(
-    @Req() req: IAuthRequest,
+    @Req() req: Request & { user: ResponseUserDto },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<MessageResponseDto> {
-    return this.authService.logout(res);
+  ): Promise<{ success: boolean }> {
+    await this.authService.logout(res);
+    return { success: true };
   }
 
   @Post('reset-password')
-  @ApiOkResponse({ type: MessageResponseDto })
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Запрос на сброс пароля' })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiCommonResponses()
+  @ApiSuccessResponse()
   async resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<MessageResponseDto> {
-    return this.authService.resetPassword(resetPasswordDto.email);
+  ): Promise<{ success: boolean }> {
+    await this.authService.resetPassword(resetPasswordDto.email);
+    return { success: true };
   }
 
   @Post('reset-password-confirm')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Подтверждение сброса пароля' })
+  @ApiBody({ type: UpdatePasswordDto })
+  @ApiAuthResponses()
   async resetPasswordConfirm(
     @Body() updatePasswordDto: UpdatePasswordDto,
   ): Promise<ResponseUserDto> {

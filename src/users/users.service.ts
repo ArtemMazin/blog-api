@@ -1,89 +1,129 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/user.schema';
 import { Model } from 'mongoose';
-import { IUserWithoutPassword } from 'types/types';
 import { IncorrectDataException } from 'src/errors/IncorrectDataException';
-import { NotFoundUserException } from 'src/errors/NotFoundUserException';
-import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
 import { ResponseUserDto } from './dto';
 import { RegisterDto } from 'src/auth/dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async createUser(user: RegisterDto): Promise<IUserWithoutPassword> {
-    if (!user.email || !user.password || !user.name) {
-      throw new IncorrectDataException();
+  private toUserResponse(user: User): ResponseUserDto {
+    return plainToClass(ResponseUserDto, user.toObject(), {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  private async findUserById(userId: string): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`Пользователь с ID ${userId} не найден`);
     }
+    return user;
+  }
+
+  async createUser(user: RegisterDto): Promise<ResponseUserDto> {
+    this.logger.log(`Попытка создания нового пользователя: ${user.email}`);
+
     try {
-      return await this.userModel.create(user);
+      const newUser = await this.userModel.create(user);
+      this.logger.log(`Пользователь успешно создан: ${newUser.email}`);
+      return this.toUserResponse(newUser);
     } catch (error) {
-      throw new UserCreationFailedException();
+      if (error.code === 11000) {
+        this.logger.warn(
+          `Попытка создания дубликата пользователя: ${user.email}`,
+        );
+        throw new ConflictException(
+          'Пользователь с таким email или username уже существует',
+        );
+      }
+      this.logger.error(`Ошибка при создании пользователя: ${error.message}`);
+      throw error;
     }
   }
 
-  async findById(id: string): Promise<IUserWithoutPassword> {
+  async findById(id: string): Promise<ResponseUserDto> {
+    this.logger.log(`Поиск пользователя по ID: ${id}`);
     if (!id) {
       throw new IncorrectDataException();
     }
-    try {
-      return await this.userModel.findById(id).lean();
-    } catch (error) {
-      throw new NotFoundUserException();
-    }
+    const user = await this.findUserById(id);
+    return this.toUserResponse(user);
   }
 
-  async findByEmail(email: string): Promise<IUserWithoutPassword> {
+  async findByEmail(email: string): Promise<ResponseUserDto> {
+    this.logger.log(`Поиск пользователя по email: ${email}`);
     if (!email) {
       throw new IncorrectDataException();
     }
-    try {
-      return await this.userModel.findOne({ email }).lean();
-    } catch (error) {
-      throw new NotFoundUserException();
+    const user = await this.userModel.findOne({ email }).exec();
+    if (!user) {
+      throw new NotFoundException(`Пользователь с email ${email} не найден`);
     }
+    return this.toUserResponse(user);
   }
 
   async findByEmailWithPassword(email: string): Promise<User> {
+    this.logger.log(`Поиск пользователя по email с паролем: ${email}`);
     if (!email) {
       throw new IncorrectDataException();
     }
-    try {
-      return await this.userModel.findOne({ email }).select('+password').lean();
-    } catch (error) {
-      throw new NotFoundUserException();
+    const user = await this.userModel.findOne({ email }).exec();
+    if (!user) {
+      throw new NotFoundException(`Пользователь с email ${email} не найден`);
     }
+    return user;
   }
 
-  async addFavoriteArticle(userId: string, articleId: string): Promise<User> {
-    const user = await this.userModel.findById(userId);
-    if (!user) {
-      throw new NotFoundUserException();
-    }
-    if (user.favorite_articles.includes(articleId)) {
-      return user;
-    }
-    user.favorite_articles.push(articleId);
-    return await user.save();
+  async addFavoriteArticle(
+    userId: string,
+    articleId: string,
+  ): Promise<ResponseUserDto> {
+    this.logger.log(
+      `Добавление статьи ${articleId} в избранное пользователя ${userId}`,
+    );
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(
+        userId,
+        { $addToSet: { favorite_articles: articleId } },
+        { new: true },
+      )
+      .exec();
+    return this.toUserResponse(updatedUser);
   }
 
   async removeFavoriteArticle(
     userId: string,
     articleId: string,
-  ): Promise<User> {
-    const user = await this.userModel.findById(userId);
-    if (!user) {
-      throw new NotFoundUserException();
-    }
-    user.favorite_articles = user.favorite_articles.filter(
-      (favoriteArticleId) => favoriteArticleId !== articleId,
+  ): Promise<ResponseUserDto> {
+    this.logger.log(
+      `Удаление статьи ${articleId} из избранного пользователя ${userId}`,
     );
-    return await user.save();
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(
+        userId,
+        { $pull: { favorite_articles: articleId } },
+        { new: true },
+      )
+      .exec();
+    return this.toUserResponse(updatedUser);
   }
 
   async removeArticleFromAllFavorites(articleId: string): Promise<void> {
+    this.logger.log(
+      `Удаление статьи ${articleId} из избранного всех пользователей`,
+    );
     await this.userModel.updateMany(
       { favorite_articles: articleId },
       { $pull: { favorite_articles: articleId } },
@@ -95,19 +135,20 @@ export class UsersService {
     updateProfileDto: Partial<User>,
     file?: Express.Multer.File,
   ): Promise<ResponseUserDto> {
-    const updateData: any = {
-      ...updateProfileDto,
-    };
+    this.logger.log(`Обновление профиля пользователя: ${userId}`);
+    const updateData: Partial<User> = { ...updateProfileDto };
     if (file) {
       updateData.avatar = file.filename;
     }
-    const user = await this.userModel.findByIdAndUpdate(userId, updateData, {
-      new: true,
-    });
-    if (!user) {
-      throw new NotFoundUserException();
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(userId, updateData, { new: true })
+      .exec();
+    if (!updatedUser) {
+      throw new NotFoundException(`Пользователь с ID ${userId} не найден`);
     }
 
-    return (await user.save()).toObject();
+    this.logger.log(`Профиль пользователя ${userId} успешно обновлен`);
+    return this.toUserResponse(updatedUser);
   }
 }

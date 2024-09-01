@@ -1,11 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { IsEmail, IsOptional } from 'class-validator';
 import { Document } from 'mongoose';
 
 @Schema({
   timestamps: true,
   toObject: {
-    // Преобразование _id в строку, иначе при вызове plainToClass _id меняет значение
     transform: (doc, ret) => {
       ret._id = ret._id.toString();
       return ret;
@@ -14,33 +12,28 @@ import { Document } from 'mongoose';
   discriminatorKey: 'kind',
 })
 export class User extends Document {
-  @Prop({ required: true })
+  @Prop({ required: true, trim: true })
   name: string;
 
-  @Prop({ required: true, unique: true })
-  @IsEmail()
+  @Prop({ required: true, unique: true, trim: true, lowercase: true })
   email: string;
 
   @Prop({ required: true })
   password: string;
 
-  @Prop({ required: true })
+  @Prop({ type: [String], default: [] })
   favorite_articles: string[];
 
-  @Prop()
-  @IsOptional()
+  @Prop({ default: '', trim: true })
   avatar: string;
 
-  @Prop()
-  @IsOptional()
+  @Prop({ default: '', trim: true })
   about: string;
 
-  @Prop()
-  @IsOptional()
+  @Prop({ default: '', trim: true })
   resetPasswordToken: string;
 
-  @Prop()
-  @IsOptional()
+  @Prop({ type: Date })
   resetPasswordExpires: Date;
 
   @Prop({ default: false })

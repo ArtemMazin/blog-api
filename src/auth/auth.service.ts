@@ -1,176 +1,140 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
-import { IUserWithoutPassword } from 'types/types';
-import { IncorrectDataException } from 'src/errors/IncorrectDataException';
-import { UserExistException } from 'src/errors/UserExistException';
-import { UserCreationFailedException } from 'src/errors/UserCreationFailedException';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ResponseUserDto } from 'src/users/dto';
-import {
-  LoginDto,
-  LoginResponseDto,
-  MessageResponseDto,
-  RegisterDto,
-} from './dto';
+import { LoginDto, RegisterDto } from './dto';
+import { plainToClass } from 'class-transformer';
+import { User } from 'src/schemas/user.schema';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
     private readonly mailerService: MailerService,
   ) {}
 
-  async signUp(userData: RegisterDto, res: Response) {
+  private toUserResponse(user: User): ResponseUserDto {
+    return plainToClass(ResponseUserDto, user.toObject(), {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async signUp(userData: RegisterDto, res: Response): Promise<ResponseUserDto> {
+    this.logger.log(`Попытка регистрации пользователя: ${userData.email}`);
     try {
-      const UserExistExceptions = await this.usersService.findByEmail(
-        userData.email,
-      );
-
-      if (UserExistExceptions) {
-        throw new UserExistException();
-      }
-
+      const hashedPassword = await this.hashPassword(userData.password);
       const newUser = await this.usersService.createUser({
-        name: userData.name,
-        email: userData.email,
-        password: await argon2.hash(userData.password),
+        ...userData,
+        password: hashedPassword,
       });
 
-      if (newUser === null) {
-        throw new UserCreationFailedException();
-      }
+      const accessToken = this.generateAccessToken(newUser);
+      this.setAccessTokenCookie(res, accessToken);
 
-      const accessToken = this.jwtService.sign({
-        email: newUser.email,
-        sub: newUser._id,
-      });
-
-      res.cookie('access_token', accessToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        maxAge: 3600000, // 1 час
-      });
-
-      return { user: newUser.toObject(), access_token: accessToken };
+      this.logger.log(`Пользователь успешно зарегистрирован: ${newUser.email}`);
+      return newUser;
     } catch (error) {
+      this.logger.error(
+        `Ошибка при регистрации пользователя: ${error.message}`,
+      );
       throw error;
     }
   }
 
-  async validateUser(
-    signInDto: LoginDto,
-  ): Promise<IUserWithoutPassword | null> {
+  async validateUser(signInDto: LoginDto): Promise<ResponseUserDto | null> {
+    this.logger.log(`Попытка валидации пользователя: ${signInDto.email}`);
     if (!signInDto.email || !signInDto.password) {
-      throw new IncorrectDataException();
+      throw new BadRequestException('Некорректные данные для входа');
     }
     try {
-      const { email, password } = signInDto;
-
-      const UserExistExceptions =
-        await this.usersService.findByEmailWithPassword(email);
-      if (!UserExistExceptions) {
+      const user = await this.usersService.findByEmailWithPassword(
+        signInDto.email,
+      );
+      if (!user) {
         return null;
       }
-      const isMatch = await argon2.verify(
-        UserExistExceptions.password,
-        password,
+      const isMatch = await this.verifyPassword(
+        user.password,
+        signInDto.password,
       );
-
       if (isMatch) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, ...result } = UserExistExceptions;
-        return result as IUserWithoutPassword;
+        this.logger.log(`Пользователь успешно валидирован: ${user.email}`);
+        return this.toUserResponse(user);
       }
+      this.logger.warn(
+        `Неудачная попытка входа для пользователя: ${signInDto.email}`,
+      );
       return null;
     } catch (error) {
+      this.logger.error(`Ошибка при валидации пользователя: ${error.message}`);
       throw error;
     }
   }
 
-  async login(user: ResponseUserDto, res: Response): Promise<LoginResponseDto> {
+  async login(user: ResponseUserDto, res: Response): Promise<ResponseUserDto> {
+    this.logger.log(`Попытка входа пользователя: ${user.email}`);
     if (!user) {
-      throw new IncorrectDataException();
+      throw new UnauthorizedException('Пользователь не авторизован');
     }
     try {
-      const accessToken = this.jwtService.sign({
-        email: user.email,
-        sub: user._id,
-      });
+      const accessToken = this.generateAccessToken(user);
+      this.setAccessTokenCookie(res, accessToken);
 
-      res.cookie('access_token', accessToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        maxAge: 3600000, // 1 час
-      });
-
-      return {
-        user,
-        access_token: accessToken,
-      };
+      this.logger.log(`Пользователь успешно вошел в систему: ${user.email}`);
+      return user;
     } catch (error) {
+      this.logger.error(`Ошибка при входе пользователя: ${error.message}`);
       throw error;
     }
   }
 
-  async logout(res: Response): Promise<MessageResponseDto> {
+  async logout(res: Response): Promise<{ success: boolean }> {
+    this.logger.log('Попытка выхода пользователя');
     try {
       res.clearCookie('access_token');
-      return { message: 'Вы вышли из аккаунта' };
+      this.logger.log('Пользователь успешно вышел из системы');
+      return { success: true };
     } catch (error) {
+      this.logger.error(`Ошибка при выходе пользователя: ${error.message}`);
       throw new Error('Не удалось выйти из аккаунта');
     }
   }
 
-  async sendPasswordResetEmail(
-    email: string,
-    resetToken: string,
-  ): Promise<MessageResponseDto> {
-    try {
-      const resetUrl = `${process.env.RESET_PASS_URL}${resetToken}`;
-
-      await this.mailerService.sendMail({
-        to: email,
-        from: process.env.MAIL_USER,
-        subject: 'Сброс пароля',
-        template: 'reset-password', // Это имя файла шаблона без расширения
-        context: {
-          name: email.split('@')[0], // Простой способ получить имя из email
-          resetUrl,
-        },
-      });
-      return { message: `Письмо для сброса пароля отправлено на ${email}` };
-    } catch (error) {
-      throw new Error('Не удалось отправить письмо для сброса пароля');
-    }
-  }
-
-  async resetPassword(email: string): Promise<MessageResponseDto> {
+  async resetPassword(email: string): Promise<{ success: boolean }> {
+    this.logger.log(`Попытка сброса пароля для пользователя: ${email}`);
     if (!email) {
-      throw new IncorrectDataException();
+      throw new BadRequestException('Email не предоставлен');
     }
     try {
-      const findedUser = await this.usersService.findByEmail(email);
-
-      if (!findedUser) {
-        throw new IncorrectDataException();
+      const user = await this.usersService.findByEmail(email);
+      if (!user) {
+        throw new BadRequestException('Пользователь не найден');
       }
-      const payload = { email: email };
-      const resetToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+      const resetToken = this.generateResetToken(email);
       const expiresIn = new Date(Date.now() + 3600000); // 1 час
 
-      await this.usersService.updateProfile(String(findedUser._id), {
+      await this.usersService.updateProfile(String(user._id), {
         resetPasswordToken: resetToken,
         resetPasswordExpires: expiresIn,
       });
 
       await this.sendPasswordResetEmail(email, resetToken);
 
-      return { message: 'Ссылка для сброса пароля отправлена на вашу почту' };
+      this.logger.log(`Ссылка для сброса пароля отправлена: ${email}`);
+      return { success: true };
     } catch (error) {
+      this.logger.error(`Ошибка при сбросе пароля: ${error.message}`);
       throw new Error('Не удалось отправить письмо для сброса пароля');
     }
   }
@@ -179,11 +143,11 @@ export class AuthService {
     resetToken: string,
     newPassword: string,
   ): Promise<ResponseUserDto> {
+    this.logger.log('Попытка обновления пароля');
     if (!resetToken || !newPassword) {
-      throw new IncorrectDataException();
-    }
-    if (newPassword.length < 6) {
-      throw new IncorrectDataException();
+      throw new BadRequestException(
+        'Некорректные данные для обновления пароля',
+      );
     }
 
     try {
@@ -191,28 +155,81 @@ export class AuthService {
       const email = payload.email;
 
       if (!email) {
-        throw new IncorrectDataException();
+        throw new BadRequestException('Некорректный токен сброса пароля');
       }
-      const findedUser = await this.usersService.findByEmailWithPassword(email);
+      const user = await this.usersService.findByEmailWithPassword(email);
 
-      if (!findedUser || findedUser.resetPasswordToken !== resetToken) {
-        throw new IncorrectDataException();
+      if (!user || user.resetPasswordToken !== resetToken) {
+        throw new BadRequestException('Некорректный токен сброса пароля');
       }
-      if (findedUser.resetPasswordExpires < new Date()) {
-        throw new IncorrectDataException();
+      if (user.resetPasswordExpires < new Date()) {
+        throw new BadRequestException(
+          'Срок действия токена сброса пароля истек',
+        );
       }
-      const hashedPassword = await argon2.hash(newPassword);
+      const hashedPassword = await this.hashPassword(newPassword);
 
-      return await this.usersService.updateProfile(String(findedUser._id), {
-        password: hashedPassword,
-        resetPasswordToken: null,
-        resetPasswordExpires: null,
-      });
+      const updatedUser = await this.usersService.updateProfile(
+        String(user._id),
+        {
+          password: hashedPassword,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+      );
+
+      this.logger.log(`Пароль успешно обновлен для пользователя: ${email}`);
+      return updatedUser;
     } catch (error) {
-      if (error instanceof JsonWebTokenError) {
-        throw new IncorrectDataException();
-      }
-      throw new Error('Не удалось изменить пароль');
+      this.logger.error(`Ошибка при обновлении пароля: ${error.message}`);
+      throw new BadRequestException('Не удалось изменить пароль');
     }
+  }
+
+  private generateAccessToken(user: User | ResponseUserDto): string {
+    return this.jwtService.sign({
+      email: user.email,
+      sub: user._id,
+    });
+  }
+
+  private setAccessTokenCookie(res: Response, accessToken: string): void {
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 3600000, // 1 час
+    });
+  }
+
+  private generateResetToken(email: string): string {
+    return this.jwtService.sign({ email }, { expiresIn: '1h' });
+  }
+
+  private async sendPasswordResetEmail(
+    email: string,
+    resetToken: string,
+  ): Promise<void> {
+    const resetUrl = `${process.env.RESET_PASS_URL}${resetToken}`;
+    await this.mailerService.sendMail({
+      to: email,
+      from: process.env.MAIL_USER,
+      subject: 'Сброс пароля',
+      template: 'reset-password',
+      context: {
+        name: email.split('@')[0],
+        resetUrl,
+      },
+    });
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    return argon2.hash(password);
+  }
+
+  private async verifyPassword(
+    hashedPassword: string,
+    plainPassword: string,
+  ): Promise<boolean> {
+    return argon2.verify(hashedPassword, plainPassword);
   }
 }
