@@ -1,19 +1,33 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsEnum } from 'class-validator';
 
-export class CreateArticleDto {
-  @ApiProperty({ example: 'Заголовок статьи' })
+enum Premium {
+  True = 'true',
+  False = 'false',
+}
+
+export class CreateBaseArticleDto {
+  @ApiProperty({ description: 'Заголовок статьи' })
+  @IsNotEmpty()
   @IsString()
   title: string;
 
-  @ApiProperty({ example: 'Содержание статьи...' })
+  @ApiProperty({ description: 'Содержание статьи' })
+  @IsNotEmpty()
   @IsString()
   content: string;
 
-  @ApiProperty({ type: 'string', format: 'binary' })
-  image: any;
+  @ApiProperty({
+    description: 'Является ли статья премиум-контентом',
+    enum: Premium,
+  })
+  @IsEnum(Premium)
+  isPremium: Premium;
 
-  @ApiProperty({ example: 'false' })
-  @IsString()
-  isPremium: 'true' | 'false';
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Изображение статьи',
+  })
+  image: any;
 }

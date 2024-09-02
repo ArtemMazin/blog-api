@@ -1,36 +1,45 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsNumber, IsOptional } from 'class-validator';
-import { CreateArticleDto } from 'src/base-article/dto/create-article.dto';
+import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator';
+import { CreateBaseArticleDto } from 'src/base-article/dto/create-article.dto';
 
-export class CreateCharacterArticleDto extends CreateArticleDto {
-  @ApiProperty({ example: 'Дарт Вейдер' })
+enum Gender {
+  Male = 'Мужской',
+  Female = 'Женский',
+  Other = 'Другое',
+}
+
+export class CreateCharacterArticleDto extends CreateBaseArticleDto {
+  @ApiProperty({ description: 'Имя персонажа' })
+  @IsNotEmpty()
   @IsString()
   characterName: string;
 
-  @ApiProperty({ example: '41.9 BBY', required: false })
+  @ApiProperty({ description: 'Дата рождения', required: false })
   @IsOptional()
   @IsString()
   birthDate?: string;
 
-  @ApiProperty({ example: '4 ABY', required: false })
+  @ApiProperty({ description: 'Дата смерти', required: false })
   @IsOptional()
   @IsString()
   deathDate?: string;
 
-  @ApiProperty({ example: 'Человек' })
+  @ApiProperty({ description: 'Раса персонажа' })
+  @IsNotEmpty()
   @IsString()
   race: string;
 
-  @ApiProperty({ enum: ['Мужской', 'Женский', 'Другое'], example: 'Мужской' })
-  @IsEnum(['Мужской', 'Женский', 'Другое'])
-  gender: string;
+  @ApiProperty({ description: 'Пол персонажа', enum: Gender })
+  @IsNotEmpty()
+  @IsEnum(Gender)
+  gender: Gender;
 
-  @ApiProperty({ example: 202, required: false })
+  @ApiProperty({ description: 'Рост персонажа', required: false })
   @IsOptional()
-  @IsNumber()
-  height?: number;
+  height?: string;
 
-  @ApiProperty({ example: 'Татуин' })
+  @ApiProperty({ description: 'Родной мир персонажа' })
+  @IsNotEmpty()
   @IsString()
   homeWorld: string;
 }

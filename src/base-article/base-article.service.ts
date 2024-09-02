@@ -7,15 +7,15 @@ import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UsersService } from 'src/users/users.service';
 import { BaseArticle } from 'src/schemas/base-article.schema';
 import { calculateReadingTime } from 'src/common/constants';
-import { CreateArticleDto } from './dto/create-article.dto';
-import { UpdateArticleDto } from './dto/update-article.dto';
 import { ResponseUserDto } from 'src/users/dto/response-user.dto';
+import { CreateBaseArticleDto } from './dto/create-article.dto';
+import { UpdateBaseArticleDto } from './dto/update-article.dto';
 
 @Injectable()
 export abstract class BaseArticleService<
   T extends BaseArticle,
-  CreateDto extends CreateArticleDto,
-  UpdateDto extends UpdateArticleDto,
+  CreateDto extends CreateBaseArticleDto,
+  UpdateDto extends UpdateBaseArticleDto,
 > {
   constructor(
     protected usersService: UsersService,
@@ -47,7 +47,7 @@ export abstract class BaseArticleService<
         content: createArticleDto.content.trim(),
         author: user,
         image: file ? file.filename : null,
-        isPremium: Boolean(createArticleDto.isPremium),
+        isPremium: createArticleDto.isPremium === 'true',
         readingTime,
       });
       return createdArticle.save();

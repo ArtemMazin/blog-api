@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ResponseUserDto } from 'src/users/dto';
 
-export class ResponseArticleDto {
+export class ResponseBaseArticleDto {
   @ApiProperty({ example: '60d5ecb54e7d5a001f5d4f2c' })
   _id: string;
 
@@ -19,15 +19,15 @@ export class ResponseArticleDto {
   @Type(() => ResponseUserDto)
   author: ResponseUserDto;
 
-  @ApiProperty({ example: '2023-06-15T10:00:00.000Z' })
-  createdAt: Date;
-
-  @ApiProperty({ example: '2023-06-15T10:00:00.000Z' })
-  updatedAt: Date;
-
   @ApiProperty({ example: false })
   isPremium: boolean;
 
   @ApiProperty({ example: 5 })
   readingTime: number;
+
+  @ApiProperty({ example: '2023-06-15T10:00:00.000Z' })
+  createdAt: Date;
+
+  @ApiProperty({ example: '2023-06-15T10:00:00.000Z' })
+  updatedAt: Date;
 }
