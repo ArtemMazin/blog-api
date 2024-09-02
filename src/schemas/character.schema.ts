@@ -18,8 +18,8 @@ export class CharacterArticle extends BaseArticle {
   @Prop({ required: true, enum: ['Мужской', 'Женский', 'Другое'] })
   gender: string;
 
-  @Prop({ type: Number })
-  height: number;
+  @Prop({ type: String })
+  height: string;
 
   @Prop({ required: true })
   homeWorld: string;

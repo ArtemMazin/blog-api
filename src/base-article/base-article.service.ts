@@ -43,8 +43,6 @@ export abstract class BaseArticleService<
 
       const createdArticle = new this.articleModel({
         ...createArticleDto,
-        title: createArticleDto.title.trim(),
-        content: createArticleDto.content.trim(),
         author: user,
         image: file ? file.filename : null,
         isPremium: createArticleDto.isPremium === 'true',
@@ -81,8 +79,6 @@ export abstract class BaseArticleService<
     try {
       const updateData = {
         ...updateArticleDto,
-        title: updateArticleDto.title.trim(),
-        content: updateArticleDto.content.trim(),
         author: user,
         image: file ? file.filename : null,
         isPremium: Boolean(updateArticleDto.isPremium),
@@ -143,6 +139,25 @@ export abstract class BaseArticleService<
     }
   }
 
+  async findMyAllArticles(userId: string): Promise<T[]> {
+    if (!mongoose.isValidObjectId(userId)) {
+      throw new InvalidIdFormatException();
+    }
+    try {
+      const myArticles = await this.articleModel
+        .find({ 'author._id': userId })
+        .populate('author')
+        .exec();
+      if (myArticles === null) {
+        throw new NotFoundArticleException();
+      }
+
+      return myArticles;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async deleteArticle(id: string): Promise<T> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
@@ -183,34 +198,13 @@ export abstract class BaseArticleService<
     }
 
     try {
-      const article = await this.articleModel.findById(id).lean();
+      const article = await this.articleModel.findById(id);
 
       if (article === null) {
         throw new NotFoundArticleException();
       }
 
-      return article?.author.toString();
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async findMyAllArticles(userId: string): Promise<T[]> {
-    if (!mongoose.isValidObjectId(userId)) {
-      throw new InvalidIdFormatException();
-    }
-    try {
-      const objectId = new mongoose.Types.ObjectId(userId);
-      const myArticles = await this.articleModel
-        .find({ author: objectId })
-        .populate('author')
-        .exec();
-
-      if (myArticles === null) {
-        throw new NotFoundArticleException();
-      }
-
-      return myArticles;
+      return article?.author._id.toString();
     } catch (error) {
       throw error;
     }

@@ -34,10 +34,11 @@ export abstract class BaseArticleController<
 
   protected async updateArticle(
     id: string,
+    user: ResponseUserDto,
     updateArticleDto: UpdateDto,
     file?: Express.Multer.File,
   ): Promise<ResponseDto> {
-    return await this.service.updateArticle(id, updateArticleDto, file);
+    return await this.service.updateArticle(id, user, updateArticleDto, file);
   }
 
   protected async deleteArticle(id: string): Promise<ResponseDto> {

@@ -112,10 +112,11 @@ export class CharacterArticleController extends BaseArticleController<
   @ApiAuthResponses()
   updateCharacterArticle(
     @Param('id') id: string,
+    @Req() req: { user: ResponseUserDto },
     @Body() updateArticleDto: UpdateCharacterArticleDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    return super.updateArticle(id, updateArticleDto, file);
+    return super.updateArticle(id, req.user, updateArticleDto, file);
   }
 
   @Delete('delete/:id')
