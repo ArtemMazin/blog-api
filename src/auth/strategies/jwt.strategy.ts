@@ -1,12 +1,16 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IUserWithoutPassword } from 'types/types';
+import { UsersService } from 'src/users/users.service';
+import { ResponseUserDto } from 'src/users/dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         JwtStrategy.extractJWT,
@@ -26,7 +30,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return null;
   }
 
-  validate(payload: any): Pick<IUserWithoutPassword, '_id' | 'email'> {
-    return { _id: payload.sub, email: payload.email };
+  async validate(payload: {
+    sub: string;
+    email: string;
+  }): Promise<ResponseUserDto> {
+    if (!payload.sub || !payload.email) {
+      throw new UnauthorizedException('Невалидный токен');
+    }
+
+    const user = await this.usersService.findById(payload.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    return user;
   }
 }

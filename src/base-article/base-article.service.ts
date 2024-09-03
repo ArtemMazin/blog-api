@@ -1,9 +1,12 @@
 import mongoose, { Model } from 'mongoose';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from 'src/schemas/user.schema';
 import { InvalidIdFormatException } from 'src/errors/InvalidIdFormatException';
-import { NotFoundArticleException } from 'src/errors/NotFoundArticleException';
-import { NotFoundUserException } from 'src/errors/NotFoundUserException';
 import { UsersService } from 'src/users/users.service';
 import { BaseArticle } from 'src/schemas/base-article.schema';
 import { calculateReadingTime } from 'src/common/constants';
@@ -16,28 +19,38 @@ export abstract class BaseArticleService<
   T extends BaseArticle,
   CreateDto extends CreateBaseArticleDto,
   UpdateDto extends UpdateBaseArticleDto,
+  ResponseDto,
 > {
+  protected readonly logger = new Logger(this.constructor.name);
+
   constructor(
     protected usersService: UsersService,
     protected articleModel: Model<T>,
     protected userModel: Model<User>,
   ) {}
 
+  // Абстрактный метод для преобразования статьи в DTO ответа
+  protected abstract toArticleResponse(article: T): ResponseDto;
+
+  // Абстрактный метод для проверки премиум-доступа
+  protected checkPremiumStatus(isPremium: string, user: ResponseUserDto): void {
+    if (isPremium === 'true' && !user.isPremium) {
+      throw new ForbiddenException(
+        'Только премиум-пользователи могут создавать премиум-статьи',
+      );
+    }
+  }
+
+  // Создание новой статьи
   async createArticle(
     createArticleDto: CreateDto,
     user: ResponseUserDto,
     file: Express.Multer.File,
-  ): Promise<T> {
-    try {
-      if (!user) {
-        throw new NotFoundUserException();
-      }
+  ): Promise<ResponseDto> {
+    this.logger.log(`Попытка создания новой статьи пользователем: ${user._id}`);
 
-      if (createArticleDto.isPremium === 'true' && !user.isPremium) {
-        throw new ForbiddenException(
-          'Только премиум-пользователи могут создавать премиум-статьи',
-        );
-      }
+    try {
+      this.checkPremiumStatus(createArticleDto.isPremium, user);
 
       const readingTime = calculateReadingTime(createArticleDto.content);
 
@@ -48,58 +61,59 @@ export abstract class BaseArticleService<
         isPremium: createArticleDto.isPremium === 'true',
         readingTime,
       });
-      return createdArticle.save();
+
+      const savedArticle = await createdArticle.save();
+      this.logger.log(`Статья успешно создана: ${savedArticle._id}`);
+      return this.toArticleResponse(savedArticle);
     } catch (error) {
+      this.logger.error(`Ошибка при создании статьи: ${error.message}`);
       throw error;
     }
   }
 
+  // Обновление существующей статьи
   async updateArticle(
     id: string,
     user: ResponseUserDto,
-    updateArticleDto?: UpdateDto,
+    updateArticleDto: UpdateDto,
     file?: Express.Multer.File,
-  ): Promise<T> {
+  ): Promise<ResponseDto> {
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
 
-    if (!user) {
-      throw new NotFoundUserException();
+    const existingArticle = await this.articleModel.findById(id);
+    if (!existingArticle) {
+      throw new NotFoundException(`Статья с ID ${id} не найдена`);
     }
 
-    if (updateArticleDto.isPremium === 'true' && !user.isPremium) {
-      throw new ForbiddenException(
-        'Только премиум-пользователи могут создавать премиум-статьи',
-      );
-    }
+    this.checkPremiumStatus(updateArticleDto.isPremium, user);
 
-    const readingTime = calculateReadingTime(updateArticleDto.content);
+    const updateData = {
+      ...existingArticle.toObject(),
+      ...updateArticleDto,
+      author: user,
+      image: file ? file.filename : existingArticle.image,
+      isPremium: updateArticleDto.isPremium === 'true',
+      readingTime: updateArticleDto.content
+        ? calculateReadingTime(updateArticleDto.content)
+        : existingArticle.readingTime,
+    };
 
-    try {
-      const updateData = {
-        ...updateArticleDto,
-        author: user,
-        image: file ? file.filename : null,
-        isPremium: Boolean(updateArticleDto.isPremium),
-        readingTime,
-      };
+    const updatedArticle = await this.articleModel
+      .findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
+      .populate('author');
 
-      const existingArticle = await this.articleModel
-        .findByIdAndUpdate(id, updateData, { new: true })
-        .populate('author');
-
-      if (!existingArticle) {
-        throw new NotFoundArticleException();
-      }
-
-      return existingArticle;
-    } catch (error) {
-      throw error;
-    }
+    return this.toArticleResponse(updatedArticle);
   }
 
-  async findOneArticle(id: string, userData?: ResponseUserDto): Promise<T> {
+  // Получение одной статьи по ID
+  async findOneArticle(
+    id: string,
+    userData?: ResponseUserDto,
+  ): Promise<ResponseDto> {
+    this.logger.log(`Поиск статьи по ID: ${id}`);
+
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
@@ -111,88 +125,110 @@ export abstract class BaseArticleService<
         .exec();
 
       if (!article) {
-        throw new NotFoundArticleException();
+        throw new NotFoundException(`Статья с ID ${id} не найдена`);
       }
 
       if (article.isPremium) {
         await this.checkPremiumAccess(userData);
       }
 
-      return article;
+      return this.toArticleResponse(article);
     } catch (error) {
-      if (error instanceof ForbiddenException) {
-        throw error;
-      }
-      throw new NotFoundArticleException();
+      this.logger.error(`Ошибка при поиске статьи: ${error.message}`);
+      throw error;
     }
   }
 
-  async findAllArticles(): Promise<T[]> {
+  // Получение всех статей
+  async findAllArticles(): Promise<ResponseDto[]> {
+    this.logger.log('Поиск всех статей');
+
     try {
       const articles = await this.articleModel.find().populate('author').exec();
-      if (articles === null) {
-        throw new NotFoundArticleException();
-      }
-      return articles;
+      return articles.map((article) => this.toArticleResponse(article));
     } catch (error) {
-      throw new NotFoundArticleException();
+      this.logger.error(`Ошибка при поиске всех статей: ${error.message}`);
+      throw error;
     }
-  }
+  } // Получение всех статей пользователя
 
-  async findMyAllArticles(userId: string): Promise<T[]> {
+  async findMyAllArticles(userId: string): Promise<ResponseDto[]> {
+    this.logger.log(`Поиск всех статей пользователя: ${userId}`);
+
     if (!mongoose.isValidObjectId(userId)) {
       throw new InvalidIdFormatException();
     }
+
     try {
       const myArticles = await this.articleModel
         .find({ 'author._id': userId })
         .populate('author')
         .exec();
-      if (myArticles === null) {
-        throw new NotFoundArticleException();
-      }
 
-      return myArticles;
+      return myArticles.map((article) => this.toArticleResponse(article));
     } catch (error) {
+      this.logger.error(
+        `Ошибка при поиске статей пользователя: ${error.message}`,
+      );
       throw error;
     }
   }
 
-  async deleteArticle(id: string): Promise<T> {
-    if (!mongoose.isValidObjectId(id)) {
-      throw new InvalidIdFormatException();
-    }
+  // Удаление статьи
+  async deleteArticle(id: string): Promise<ResponseDto> {
+    const session = await this.articleModel.db.startSession();
+    session.startTransaction();
 
     try {
       const deletedArticle = await this.articleModel
         .findByIdAndDelete(id)
         .populate('author')
+        .session(session)
         .exec();
 
-      if (deletedArticle === null) {
-        throw new NotFoundArticleException();
+      if (!deletedArticle) {
+        throw new NotFoundException(`Статья с ID ${id} не найдена`);
       }
 
-      await this.usersService.removeArticleFromAllFavorites(id);
+      await this.usersService.removeArticleFromAllFavorites(id, session);
 
-      return deletedArticle;
+      await session.commitTransaction();
+      this.logger.log(`Статья успешно удалена: ${id}`);
+      return this.toArticleResponse(deletedArticle);
     } catch (error) {
+      await session.abortTransaction();
+      this.logger.error(`Ошибка при удалении статьи: ${error.message}`);
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  // Поиск статей
+  async searchArticles(searchTerm: string): Promise<ResponseDto[]> {
+    this.logger.log(`Поиск статей по запросу: ${searchTerm}`);
+
+    const regex = new RegExp(searchTerm, 'i');
+
+    try {
+      const articles = await this.articleModel
+        .find({
+          $or: [{ title: { $regex: regex } }, { content: { $regex: regex } }],
+        })
+        .populate('author')
+        .exec();
+
+      return articles.map((article) => this.toArticleResponse(article));
+    } catch (error) {
+      this.logger.error(`Ошибка при поиске статей: ${error.message}`);
       throw error;
     }
   }
 
-  async searchArticles(searchTerm: string): Promise<T[]> {
-    const regex = new RegExp(searchTerm, 'i');
-
-    return this.articleModel
-      .find({
-        $or: [{ title: { $regex: regex } }, { content: { $regex: regex } }],
-      })
-      .populate('author')
-      .exec();
-  }
-
+  // Получение автора статьи
   async getArticleAuthor(id: string): Promise<string> {
+    this.logger.log(`Получение автора статьи: ${id}`);
+
     if (!mongoose.isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
@@ -200,16 +236,18 @@ export abstract class BaseArticleService<
     try {
       const article = await this.articleModel.findById(id);
 
-      if (article === null) {
-        throw new NotFoundArticleException();
+      if (!article) {
+        throw new NotFoundException(`Статья с ID ${id} не найдена`);
       }
 
-      return article?.author._id.toString();
+      return article.author._id.toString();
     } catch (error) {
+      this.logger.error(`Ошибка при получении автора статьи: ${error.message}`);
       throw error;
     }
   }
 
+  // Абстрактный метод для проверки премиум-доступа
   protected abstract checkPremiumAccess(
     userData?: ResponseUserDto,
   ): Promise<void>;

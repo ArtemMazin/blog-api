@@ -9,12 +9,15 @@ import { InvalidPremiumStatus } from 'src/errors/InvalidPremiumStatus';
 import { CreateCharacterArticleDto } from './dto/create-character-article.dto';
 import { UpdateCharacterArticleDto } from './dto/update-character-article.dto';
 import { ResponseUserDto } from 'src/users/dto/response-user.dto';
+import { ResponseCharacterArticleDto } from './dto/response-character-article.dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class CharacterArticleService extends BaseArticleService<
   CharacterArticle,
   CreateCharacterArticleDto,
-  UpdateCharacterArticleDto
+  UpdateCharacterArticleDto,
+  ResponseCharacterArticleDto
 > {
   constructor(
     @InjectModel(CharacterArticle.name)
@@ -25,9 +28,23 @@ export class CharacterArticleService extends BaseArticleService<
     super(usersService, characterArticleModel, userModel);
   }
 
+  // Реализация метода преобразования статьи в DTO ответа
+  protected toArticleResponse(
+    article: CharacterArticle,
+  ): ResponseCharacterArticleDto {
+    return plainToClass(ResponseCharacterArticleDto, article.toObject(), {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  // Реализация метода проверки премиум-доступа
   protected async checkPremiumAccess(
     userData?: ResponseUserDto,
   ): Promise<void> {
+    this.logger.log(
+      `Проверка премиум-доступа для пользователя: ${userData?._id}`,
+    );
+
     if (!userData) {
       throw new InvalidPremiumStatus();
     }
@@ -35,7 +52,14 @@ export class CharacterArticleService extends BaseArticleService<
     const user = await this.userModel.findById(userData._id).lean().exec();
 
     if (!user || !user.isPremium) {
+      this.logger.warn(
+        `Отказано в премиум-доступе пользователю: ${userData._id}`,
+      );
       throw new InvalidPremiumStatus();
     }
+
+    this.logger.log(
+      `Премиум-доступ подтвержден для пользователя: ${userData._id}`,
+    );
   }
 }
