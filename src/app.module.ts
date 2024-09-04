@@ -1,21 +1,24 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
+import { join } from 'path';
+
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { PaymentModule } from './payment/payment.module';
-import { BaseArticle, BaseArticleSchema } from './schemas/base-article.schema';
 import { CharacterArticleModule } from './character-article/character-article.module';
+import { EmailModule } from './email/email.module';
+import { BaseArticle, BaseArticleSchema } from './schemas/base-article.schema';
 
 @Module({
   imports: [
+    // Настройка статических файлов
     ServeStaticModule.forRoot({
       rootPath:
         process.env.NODE_ENV === 'production'
@@ -23,7 +26,9 @@ import { CharacterArticleModule } from './character-article/character-article.mo
           : join(__dirname, '..', '..', process.env.UPLOAD_ROOT_PATH),
       serveRoot: process.env.SERVE_ROOT,
     }),
+    // Загрузка конфигурации
     ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}` }),
+    // Подключение к MongoDB
     MongooseModule.forRoot(process.env.MONGO_URI),
     MongooseModule.forFeature([
       {
@@ -31,12 +36,14 @@ import { CharacterArticleModule } from './character-article/character-article.mo
         schema: BaseArticleSchema,
       },
     ]),
+    // Настройка ограничения запросов
     ThrottlerModule.forRoot([
       {
         ttl: 60,
         limit: 10,
       },
     ]),
+    // Настройка почтового модуля
     MailerModule.forRoot({
       transport: {
         host: process.env.MAIL_HOST,
@@ -48,9 +55,8 @@ import { CharacterArticleModule } from './character-article/character-article.mo
         },
         tls: {
           rejectUnauthorized: false,
-        }, //удалить в продакшене
+        }, // удалить в продакшене
       },
-
       template: {
         dir: join(__dirname, '..', '..', 'templates'),
         adapter: new PugAdapter(),
@@ -59,12 +65,12 @@ import { CharacterArticleModule } from './character-article/character-article.mo
         },
       },
     }),
-    // ArticleModule,
+    // Подключение модулей
     UsersModule,
     AuthModule,
-    UsersModule,
     PaymentModule,
     CharacterArticleModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

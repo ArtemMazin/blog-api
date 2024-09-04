@@ -37,11 +37,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Регистрация нового пользователя' })
   @ApiBody({ type: RegisterDto })
   @ApiRegisterResponses()
-  async signUp(
+  async registerUser(
     @Body() user: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseUserDto> {
-    return await this.authService.signUp(user, res);
+    return await this.authService.registerUser(user, res);
   }
 
   @UseGuards(LocalAuthGuard)
@@ -50,11 +50,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Авторизация пользователя' })
   @ApiBody({ type: LoginDto })
   @ApiAuthResponses()
-  async login(
+  async authenticateUser(
     @Req() req: Request & { user: ResponseUserDto },
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseUserDto> {
-    return await this.authService.login(req.user, res);
+    return await this.authService.authenticateUser(req.user, res);
   }
 
   @Post('logout')
@@ -62,12 +62,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Выход пользователя' })
   @ApiCommonResponses()
   @ApiSuccessResponse()
-  async logout(
+  async logoutUser(
     @Req() req: Request & { user: ResponseUserDto },
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ success: boolean }> {
-    await this.authService.logout(res);
-    return { success: true };
+    return await this.authService.logoutUser(res);
   }
 
   @Post('reset-password')

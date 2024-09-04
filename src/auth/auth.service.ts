@@ -13,6 +13,9 @@ import { ResponseUserDto } from 'src/users/dto';
 import { LoginDto, RegisterDto } from './dto';
 import { plainToClass } from 'class-transformer';
 import { User } from 'src/schemas/user.schema';
+import { AUTH_CONSTANTS } from 'src/common/auth-constants';
+import { JwtPayload } from 'types/types';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +25,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private readonly mailerService: MailerService,
+    private readonly emailService: EmailService,
   ) {}
 
   private toUserResponse(user: User): ResponseUserDto {
@@ -30,7 +34,10 @@ export class AuthService {
     });
   }
 
-  async signUp(userData: RegisterDto, res: Response): Promise<ResponseUserDto> {
+  async registerUser(
+    userData: RegisterDto,
+    res: Response,
+  ): Promise<ResponseUserDto> {
     this.logger.log(`Попытка регистрации пользователя: ${userData.email}`);
     try {
       const hashedPassword = await this.hashPassword(userData.password);
@@ -82,7 +89,10 @@ export class AuthService {
     }
   }
 
-  async login(user: ResponseUserDto, res: Response): Promise<ResponseUserDto> {
+  async authenticateUser(
+    user: ResponseUserDto,
+    res: Response,
+  ): Promise<ResponseUserDto> {
     this.logger.log(`Попытка входа пользователя: ${user.email}`);
     if (!user) {
       throw new UnauthorizedException('Пользователь не авторизован');
@@ -99,7 +109,7 @@ export class AuthService {
     }
   }
 
-  async logout(res: Response): Promise<{ success: boolean }> {
+  async logoutUser(res: Response): Promise<{ success: boolean }> {
     this.logger.log('Попытка выхода пользователя');
     try {
       res.clearCookie('access_token');
@@ -129,7 +139,7 @@ export class AuthService {
         resetPasswordExpires: expiresIn,
       });
 
-      await this.sendPasswordResetEmail(email, resetToken);
+      await this.emailService.sendPasswordResetEmail(email, resetToken);
 
       this.logger.log(`Ссылка для сброса пароля отправлена: ${email}`);
       return { success: true };
@@ -187,39 +197,26 @@ export class AuthService {
   }
 
   private generateAccessToken(user: User | ResponseUserDto): string {
-    return this.jwtService.sign({
+    const payload: JwtPayload = {
       email: user.email,
-      sub: user._id,
-    });
+      sub: user._id.toString(),
+    };
+    return this.jwtService.sign(payload);
   }
 
   private setAccessTokenCookie(res: Response, accessToken: string): void {
-    res.cookie('access_token', accessToken, {
+    res.cookie(AUTH_CONSTANTS.COOKIE_NAME, accessToken, {
       httpOnly: true,
       sameSite: 'strict',
-      maxAge: 3600000, // 1 час
+      maxAge: 24 * 60 * 60 * 1000, // 1 день в миллисекундах
     });
   }
 
   private generateResetToken(email: string): string {
-    return this.jwtService.sign({ email }, { expiresIn: '1h' });
-  }
-
-  private async sendPasswordResetEmail(
-    email: string,
-    resetToken: string,
-  ): Promise<void> {
-    const resetUrl = `${process.env.RESET_PASS_URL}${resetToken}`;
-    await this.mailerService.sendMail({
-      to: email,
-      from: process.env.MAIL_USER,
-      subject: 'Сброс пароля',
-      template: 'reset-password',
-      context: {
-        name: email.split('@')[0],
-        resetUrl,
-      },
-    });
+    return this.jwtService.sign(
+      { email },
+      { expiresIn: AUTH_CONSTANTS.RESET_TOKEN_EXPIRATION },
+    );
   }
 
   private async hashPassword(password: string): Promise<string> {

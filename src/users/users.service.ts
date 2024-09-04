@@ -16,7 +16,9 @@ import { plainToClass } from 'class-transformer';
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+  ) {}
 
   private toUserResponse(user: User): ResponseUserDto {
     return plainToClass(ResponseUserDto, user.toObject(), {

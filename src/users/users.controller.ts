@@ -11,32 +11,31 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
-import { IAuthRequest } from 'types/types';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiOkResponse,
   ApiBearerAuth,
-  ApiParam,
   ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import {
+  ApiCommonResponses,
+  ApiUserResponses,
+} from '../decorators/api-responses.decorator';
+import { UsersService } from './users.service';
 import {
   ResponseUserDto,
   ToggleFavoriteArticleDto,
   UpdateProfileDto,
 } from './dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiCommonResponses,
-  ApiUserResponses,
-} from 'src/decorators/api-responses.decorator';
 
 @ApiTags('Пользователи')
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
@@ -44,7 +43,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Получить профиль текущего пользователя' })
   @ApiOkResponse({ type: ResponseUserDto })
   @ApiCommonResponses()
-  getProfile(@Req() req: IAuthRequest) {
+  async getProfile(
+    @Req() req: Request & { user: ResponseUserDto },
+  ): Promise<ResponseUserDto> {
     return this.usersService.findByEmail(req.user.email);
   }
 
@@ -52,40 +53,28 @@ export class UsersController {
   @ApiOperation({ summary: 'Получить пользователя по ID' })
   @ApiParam({ name: 'id', description: 'ID пользователя' })
   @ApiUserResponses()
-  getUserById(@Param('id') id: string) {
+  async getUserById(@Param('id') id: string): Promise<ResponseUserDto> {
     return this.usersService.findById(id);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('add-favorite-article')
+  @Patch('favorite-article')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Добавить статью в избранное' })
+  @ApiOperation({ summary: 'Добавить/удалить статью в/из избранного' })
   @ApiOkResponse({ type: ResponseUserDto })
   @ApiCommonResponses()
-  addFavoriteArticle(
-    @Req() req: IAuthRequest,
-    @Body() addFavoriteArticleDto: ToggleFavoriteArticleDto,
-  ) {
-    return this.usersService.addFavoriteArticle(
-      req.user._id.toString(),
-      addFavoriteArticleDto.articleId,
-    );
-  }
+  async toggleFavoriteArticle(
+    @Req() req: Request & { user: ResponseUserDto },
+    @Body() toggleFavoriteArticleDto: ToggleFavoriteArticleDto,
+  ): Promise<ResponseUserDto> {
+    const { articleId, action } = toggleFavoriteArticleDto;
+    const userId = req.user._id.toString();
 
-  @UseGuards(JwtAuthGuard)
-  @Patch('delete-favorite-article')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Удалить статью из избранного' })
-  @ApiOkResponse({ type: ResponseUserDto })
-  @ApiCommonResponses()
-  deleteFavoriteArticle(
-    @Req() req: IAuthRequest,
-    @Body() removeFavoriteArticleDto: ToggleFavoriteArticleDto,
-  ) {
-    return this.usersService.removeFavoriteArticle(
-      req.user._id.toString(),
-      removeFavoriteArticleDto.articleId,
-    );
+    if (action === 'add') {
+      return this.usersService.addFavoriteArticle(userId, articleId);
+    } else {
+      return this.usersService.removeFavoriteArticle(userId, articleId);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -97,15 +86,11 @@ export class UsersController {
   @ApiOkResponse({ type: ResponseUserDto })
   @ApiCommonResponses()
   async updateProfile(
-    @Req() req: IAuthRequest,
+    @Req() req: Request & { user: ResponseUserDto },
     @Body() updateProfileDto: UpdateProfileDto,
     @UploadedFile(
       new ParseFilePipe({
-        validators: [
-          new FileTypeValidator({
-            fileType: /^image\//,
-          }),
-        ],
+        validators: [new FileTypeValidator({ fileType: /^image\// })],
         fileIsRequired: false,
       }),
     )

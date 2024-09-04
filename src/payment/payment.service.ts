@@ -1,24 +1,35 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePaymentDto, GetPaymentDto } from './dto';
-import { UsersService } from 'src/users/users.service';
-import { ResponseUserDto } from 'src/users/dto';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { CreatePaymentDto, GetPaymentDto, ResponsePaymentDto } from './dto';
+import { UsersService } from '../users/users.service';
+import { ResponseUserDto } from '../users/dto';
 
 @Injectable()
 export class PaymentService {
-  constructor(private usersService: UsersService) {}
+  private readonly logger = new Logger(PaymentService.name);
 
-  async createPayment(createPaymentDto: CreatePaymentDto) {
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  private getYookassaHeaders(): Record<string, string> {
+    return {
+      'Content-Type': 'application/json',
+      'Idempotence-Key': Date.now().toString(),
+      Authorization: `Basic ${Buffer.from(
+        `${this.configService.get('YOOKASSA_SHOP_ID')}:${this.configService.get('YOOKASSA_SECRET_KEY')}`,
+      ).toString('base64')}`,
+    };
+  }
+
+  async createPayment(
+    createPaymentDto: CreatePaymentDto,
+  ): Promise<ResponsePaymentDto> {
     try {
-      const data = fetch(process.env.YOOKASSA_URL, {
+      const response = await fetch(this.configService.get('YOOKASSA_URL'), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotence-Key': Date.now().toString(),
-          Authorization: `Basic ${Buffer.from(
-            `${process.env.YOOKASSA_SHOP_ID}:${process.env.YOOKASSA_SECRET_KEY}`,
-          ).toString('base64')}`,
-        },
-
+        headers: this.getYookassaHeaders(),
         body: JSON.stringify({
           amount: {
             value: createPaymentDto.amount,
@@ -28,42 +39,62 @@ export class PaymentService {
           description: 'Оплата заказа',
           confirmation: {
             type: 'redirect',
-            return_url: process.env.YOOKASSA_RETURN_URL,
+            return_url: this.configService.get('YOOKASSA_RETURN_URL'),
           },
           test: true,
         }),
-      }).then((response) => response.json());
+      });
 
-      return data;
+      if (!response.ok) {
+        throw new HttpException(
+          'Ошибка при создании платежа',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return await response.json();
     } catch (error) {
-      throw new Error('Ошибка при создании платежа');
+      this.logger.error(`Ошибка при создании платежа: ${error.message}`);
+      throw new HttpException(
+        'Ошибка при создании платежа',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-  async getPayment(getPaymentDto: GetPaymentDto, user: ResponseUserDto) {
+  async getPayment(
+    getPaymentDto: GetPaymentDto,
+    user: ResponseUserDto,
+  ): Promise<ResponsePaymentDto> {
     try {
-      const data: { status: string } = await fetch(
+      const response = await fetch(
         `https://api.yookassa.ru/v3/payments/${getPaymentDto.id}`,
         {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Basic ${Buffer.from(
-              `${process.env.YOOKASSA_SHOP_ID}:${process.env.YOOKASSA_SECRET_KEY}`,
-            ).toString('base64')}`,
-          },
+          headers: this.getYookassaHeaders(),
         },
-      ).then((response) => response.json());
+      );
+
+      if (!response.ok) {
+        throw new HttpException(
+          'Ошибка при получении платежа',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const data: ResponsePaymentDto = await response.json();
 
       if (data?.status === 'succeeded') {
-        this.usersService.updateProfile(user._id, {
-          isPremium: true,
-        });
-
-        return data;
+        await this.usersService.updateProfile(user._id, { isPremium: true });
       }
+
+      return data;
     } catch (error) {
-      throw new Error('Ошибка при получении платежа');
+      this.logger.error(`Ошибка при получении платежа: ${error.message}`);
+      throw new HttpException(
+        'Ошибка при получении платежа',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

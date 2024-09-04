@@ -1,21 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+
 export class CreatePaymentDto {
   @IsNotEmpty()
-  @ApiProperty({
-    example: '300',
-  })
+  @IsNumber()
+  @ApiProperty({ example: 300, description: 'Сумма платежа' })
   readonly amount: number;
 }
+
 export class GetPaymentDto {
   @IsNotEmpty()
+  @IsString()
   @ApiProperty({
     example: '2e3205eb-000f-5000-9000-1e9b60aa75bc',
+    description: 'ID платежа',
   })
   readonly id: string;
 }
 
-class AmountDto {
+export class AmountDto {
   @ApiProperty({ example: '100.00' })
   value: string;
 
@@ -23,7 +26,7 @@ class AmountDto {
   currency: string;
 }
 
-class ConfirmationDto {
+export class ConfirmationDto {
   @ApiProperty({ example: 'redirect' })
   type: string;
 
@@ -34,12 +37,12 @@ class ConfirmationDto {
   confirmation_url: string;
 }
 
-class MetadataDto {
+export class MetadataDto {
   @ApiProperty({ example: '37' })
   order_id: string;
 }
 
-class RecipientDto {
+export class RecipientDto {
   @ApiProperty({ example: '100500' })
   account_id: string;
 

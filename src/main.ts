@@ -7,29 +7,37 @@ import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
 async function bootstrap() {
+  // Загрузка переменных окружения
+  dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+
   const PORT = process.env.PORT || 3000;
   const app = await NestFactory.create(AppModule);
 
-  dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-
+  // Настройка безопасности
   app.use(helmet());
 
+  // Настройка CORS
   app.enableCors({
     origin: ['http://localhost:3000', 'https://viva-msk-test.ru'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
 
+  // Настройка парсера куки
   app.use(cookieParser());
 
+  // Настройка глобальной валидации
   app.useGlobalPipes(new ValidationPipe());
 
+  // Настройка Swagger
   const config = new DocumentBuilder().setTitle('Blog API').build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
+  // Запуск сервера
   await app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+    console.log(`Сервер запущен на порту ${PORT}`);
   });
 }
+
 bootstrap();

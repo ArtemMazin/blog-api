@@ -8,18 +8,17 @@ import {
   ApiCreatedResponse,
   ApiConflictResponse,
 } from '@nestjs/swagger';
-import { ResponseUserDto } from 'src/users/dto';
+import { ResponseUserDto } from '../users/dto';
 
-export const ApiCommonResponses = () => {
-  return applyDecorators(
+export const ApiCommonResponses = () =>
+  applyDecorators(
     ApiBadRequestResponse({ description: 'Некорректный запрос или данные' }),
     ApiUnauthorizedResponse({ description: 'Пользователь не авторизован' }),
     ApiForbiddenResponse({ description: 'Доступ запрещен' }),
   );
-};
 
-export const ApiUserResponses = () => {
-  return applyDecorators(
+export const ApiUserResponses = () =>
+  applyDecorators(
     ApiOkResponse({
       description: 'Операция успешно выполнена',
       type: ResponseUserDto,
@@ -27,7 +26,6 @@ export const ApiUserResponses = () => {
     ApiNotFoundResponse({ description: 'Пользователь не найден' }),
     ApiCommonResponses(),
   );
-};
 
 export const ApiAuthResponses = () => {
   return applyDecorators(

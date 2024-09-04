@@ -150,8 +150,9 @@ export abstract class BaseArticleService<
       this.logger.error(`Ошибка при поиске всех статей: ${error.message}`);
       throw error;
     }
-  } // Получение всех статей пользователя
+  }
 
+  // Получение всех статей пользователя
   async findMyAllArticles(userId: string): Promise<ResponseDto[]> {
     this.logger.log(`Поиск всех статей пользователя: ${userId}`);
 

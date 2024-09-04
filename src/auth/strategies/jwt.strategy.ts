@@ -4,6 +4,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
 import { ResponseUserDto } from 'src/users/dto';
+import { JwtPayload } from 'types/types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -30,10 +31,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return null;
   }
 
-  async validate(payload: {
-    sub: string;
-    email: string;
-  }): Promise<ResponseUserDto> {
+  async validate(payload: JwtPayload): Promise<ResponseUserDto> {
     if (!payload.sub || !payload.email) {
       throw new UnauthorizedException('Невалидный токен');
     }

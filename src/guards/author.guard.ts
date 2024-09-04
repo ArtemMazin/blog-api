@@ -18,7 +18,7 @@ export class AuthorGuard implements CanActivate {
     const authorId = await this.articleService.getArticleAuthor(articleId);
 
     if (userId !== authorId) {
-      throw new ForbiddenException('You are not the author of this article');
+      throw new ForbiddenException('Вы не являетесь автором этой статьи');
     }
 
     return true;
