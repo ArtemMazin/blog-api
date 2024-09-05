@@ -1,8 +1,8 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreatePaymentDto, GetPaymentDto, ResponsePaymentDto } from './dto';
-import { UsersService } from '../users/users.service';
 import { ResponseUserDto } from '../users/dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class PaymentService {

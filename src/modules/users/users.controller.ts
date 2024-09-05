@@ -20,17 +20,17 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import {
-  ApiCommonResponses,
-  ApiUserResponses,
-} from '../decorators/api-responses.decorator';
 import { UsersService } from './users.service';
 import {
   ResponseUserDto,
   ToggleFavoriteArticleDto,
   UpdateProfileDto,
 } from './dto';
+import {
+  ApiCommonResponses,
+  ApiUserResponses,
+} from 'src/decorators/api-responses.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 
 @ApiTags('Пользователи')
 @Controller('users')

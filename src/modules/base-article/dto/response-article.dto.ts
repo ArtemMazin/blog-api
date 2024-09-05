@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { ResponseUserDto } from 'src/users/dto/response-user.dto';
+import { ResponseUserDto } from 'src/modules/users/dto';
 
 export class ResponseBaseArticleDto {
   @ApiProperty({ example: '60d5ecb54e7d5a001f5d4f2c' })

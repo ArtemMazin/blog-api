@@ -4,18 +4,18 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ResponseUserDto } from 'src/users/dto';
 import { LoginDto, RegisterDto } from './dto';
 import { plainToClass } from 'class-transformer';
 import { User } from 'src/schemas/user.schema';
 import { AUTH_CONSTANTS } from 'src/common/auth-constants';
 import { JwtPayload } from 'types/types';
-import { EmailService } from 'src/email/email.service';
+import { EmailService } from 'src/modules/email/email.service';
+import { ResponseUserDto } from '../users/dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {

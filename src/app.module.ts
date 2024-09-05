@@ -6,15 +6,15 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 import { join } from 'path';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { PaymentModule } from './payment/payment.module';
-import { CharacterArticleModule } from './character-article/character-article.module';
-import { EmailModule } from './email/email.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { CharacterArticleModule } from './modules/character-article/character-article.module';
+import { EmailModule } from './modules/email/email.module';
 import { BaseArticle, BaseArticleSchema } from './schemas/base-article.schema';
+import { UsersModule } from './modules/users/users.module';
+import { RaceArticleModule } from './modules/race/race-article.module';
 
 @Module({
   imports: [
@@ -71,6 +71,7 @@ import { BaseArticle, BaseArticleSchema } from './schemas/base-article.schema';
     PaymentModule,
     CharacterArticleModule,
     EmailModule,
+    RaceArticleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -7,8 +7,8 @@ import {
 } from '@nestjs/swagger';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto, GetPaymentDto, ResponsePaymentDto } from './dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { ResponseUserDto } from 'src/users/dto';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { ResponseUserDto } from '../users/dto';
 
 @ApiTags('Платежи')
 @Controller('payment')

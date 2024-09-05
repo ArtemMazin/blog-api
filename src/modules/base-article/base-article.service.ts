@@ -7,12 +7,13 @@ import {
 } from '@nestjs/common';
 import { User } from 'src/schemas/user.schema';
 import { InvalidIdFormatException } from 'src/errors/InvalidIdFormatException';
-import { UsersService } from 'src/users/users.service';
 import { BaseArticle } from 'src/schemas/base-article.schema';
 import { calculateReadingTime } from 'src/common/constants';
-import { ResponseUserDto } from 'src/users/dto/response-user.dto';
 import { CreateBaseArticleDto } from './dto/create-article.dto';
 import { UpdateBaseArticleDto } from './dto/update-article.dto';
+import { UsersService } from '../users/users.service';
+import { ResponseUserDto } from '../users/dto';
+import { IArticleService } from 'types/types';
 
 @Injectable()
 export abstract class BaseArticleService<
@@ -20,7 +21,8 @@ export abstract class BaseArticleService<
   CreateDto extends CreateBaseArticleDto,
   UpdateDto extends UpdateBaseArticleDto,
   ResponseDto,
-> {
+> implements IArticleService
+{
   protected readonly logger = new Logger(this.constructor.name);
 
   constructor(

@@ -3,12 +3,17 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  Inject,
 } from '@nestjs/common';
-import { CharacterArticleService } from 'src/character-article/character-article.service';
+import { Reflector } from '@nestjs/core';
+import { IArticleService } from 'types/types';
 
 @Injectable()
 export class AuthorGuard implements CanActivate {
-  constructor(private readonly articleService: CharacterArticleService) {}
+  constructor(
+    private readonly reflector: Reflector,
+    @Inject('IArticleService') private readonly articleService: IArticleService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();

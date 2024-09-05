@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator';
-import { CreateBaseArticleDto } from 'src/base-article/dto/create-article.dto';
+import { CreateBaseArticleDto } from 'src/modules/base-article/dto/create-article.dto';
 
 enum Gender {
   Male = 'Мужской',

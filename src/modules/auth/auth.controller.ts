@@ -17,7 +17,7 @@ import {
   UpdatePasswordDto,
 } from './dto';
 import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { ResponseUserDto } from '../users/dto';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import {

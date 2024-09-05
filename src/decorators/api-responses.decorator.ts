@@ -8,7 +8,7 @@ import {
   ApiCreatedResponse,
   ApiConflictResponse,
 } from '@nestjs/swagger';
-import { ResponseUserDto } from '../users/dto';
+import { ResponseUserDto } from 'src/modules/users/dto';
 
 export const ApiCommonResponses = () =>
   applyDecorators(

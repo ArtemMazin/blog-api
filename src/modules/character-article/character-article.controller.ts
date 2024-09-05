@@ -33,13 +33,13 @@ import {
 } from 'src/decorators/api-responses.decorator';
 import { BaseArticleController } from '../base-article/base-article.controller';
 import { CharacterArticleService } from './character-article.service';
-import { CharacterArticle } from 'src/schemas/character.schema';
+import { CharacterArticle } from 'src/schemas/character-article.schema';
 import {
   CreateCharacterArticleDto,
   UpdateCharacterArticleDto,
   ResponseCharacterArticleDto,
 } from './dto';
-import { ResponseUserDto } from 'src/users/dto';
+import { ResponseUserDto } from '../users/dto';
 
 @ApiTags('Статьи о персонажах')
 @Controller('character-articles')

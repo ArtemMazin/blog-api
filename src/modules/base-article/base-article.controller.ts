@@ -1,4 +1,4 @@
-import { ResponseUserDto } from 'src/users/dto';
+import { ResponseUserDto } from '../users/dto';
 
 export abstract class BaseArticleController<
   T,

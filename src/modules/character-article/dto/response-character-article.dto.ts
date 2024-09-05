@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { ResponseBaseArticleDto } from 'src/base-article/dto/response-article.dto';
+import { ResponseBaseArticleDto } from 'src/modules/base-article/dto/response-article.dto';
 
 export class ResponseCharacterArticleDto extends ResponseBaseArticleDto {
   @ApiProperty({ description: 'Имя персонажа' })

@@ -9,7 +9,7 @@ import { User } from 'src/schemas/user.schema';
 import { ClientSession, Model } from 'mongoose';
 import { IncorrectDataException } from 'src/errors/IncorrectDataException';
 import { ResponseUserDto } from './dto';
-import { RegisterDto } from 'src/auth/dto';
+import { RegisterDto } from 'src/modules/auth/dto';
 import { plainToClass } from 'class-transformer';
 
 @Injectable()
