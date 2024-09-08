@@ -25,7 +25,7 @@ export class ResponseCharacterArticleDto extends ResponseBaseArticleDto {
 
   @ApiProperty({ description: 'Рост персонажа', required: false })
   @Expose()
-  height?: number;
+  height?: string;
 
   @ApiProperty({ description: 'Родной мир персонажа' })
   @Expose()

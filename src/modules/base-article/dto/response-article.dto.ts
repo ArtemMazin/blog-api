@@ -32,6 +32,10 @@ export class ResponseBaseArticleDto {
   @Expose()
   readingTime: number;
 
+  @ApiProperty({ example: 0 })
+  @Expose()
+  likesCount: number;
+
   @ApiProperty({ example: '2023-06-15T10:00:00.000Z' })
   @Expose()
   @Type(() => Date)

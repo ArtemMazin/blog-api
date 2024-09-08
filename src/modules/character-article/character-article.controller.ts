@@ -138,4 +138,32 @@ export class CharacterArticleController extends BaseArticleController<
   searchCharacterArticles(@Query('query') query: string) {
     return super.searchArticles(query);
   }
+
+  @Post('like/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Лайкнуть статью о персонаже' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: ResponseCharacterArticleDto })
+  @ApiAuthResponses()
+  likeCharacterArticle(@Param('id') id: string) {
+    return this.characterArticleService.likeArticle(id);
+  }
+
+  @Post('unlike/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Убрать лайк со статьи о персонаже' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: ResponseCharacterArticleDto })
+  @ApiAuthResponses()
+  unlikeCharacterArticle(@Param('id') id: string) {
+    return this.characterArticleService.unlikeArticle(id);
+  }
+
+  @Get('top')
+  @ApiOperation({ summary: 'Получить топ-5 статей о персонажах' })
+  @ApiOkResponse({ type: ResponseCharacterArticleDto, isArray: true })
+  @ApiCommonResponses()
+  getTopCharacterArticles() {
+    return this.characterArticleService.getTopArticles();
+  }
 }

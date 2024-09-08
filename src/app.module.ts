@@ -12,7 +12,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { CharacterArticleModule } from './modules/character-article/character-article.module';
 import { EmailModule } from './modules/email/email.module';
-import { BaseArticle, BaseArticleSchema } from './schemas/base-article.schema';
 import { UsersModule } from './modules/users/users.module';
 import { RaceArticleModule } from './modules/race/race-article.module';
 
@@ -30,12 +29,7 @@ import { RaceArticleModule } from './modules/race/race-article.module';
     ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}` }),
     // Подключение к MongoDB
     MongooseModule.forRoot(process.env.MONGO_URI),
-    MongooseModule.forFeature([
-      {
-        name: BaseArticle.name,
-        schema: BaseArticleSchema,
-      },
-    ]),
+
     // Настройка ограничения запросов
     ThrottlerModule.forRoot([
       {

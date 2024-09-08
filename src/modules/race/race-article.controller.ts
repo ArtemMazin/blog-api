@@ -137,4 +137,32 @@ export class RaceArticleController extends BaseArticleController<
   searchRaceArticles(@Query('query') query: string) {
     return super.searchArticles(query);
   }
+
+  @Post('like/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Лайкнуть статью о расе' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: ResponseRaceArticleDto })
+  @ApiAuthResponses()
+  likeRaceArticle(@Param('id') id: string) {
+    return this.raceArticleService.likeArticle(id);
+  }
+
+  @Post('unlike/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Убрать лайк со статьи о расе' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: ResponseRaceArticleDto })
+  @ApiAuthResponses()
+  unlikeRaceArticle(@Param('id') id: string) {
+    return this.raceArticleService.unlikeArticle(id);
+  }
+
+  @Get('top')
+  @ApiOperation({ summary: 'Получить топ-5 статей о расах' })
+  @ApiOkResponse({ type: ResponseRaceArticleDto, isArray: true })
+  @ApiCommonResponses()
+  getTopRaceArticles() {
+    return this.raceArticleService.getTopArticles();
+  }
 }

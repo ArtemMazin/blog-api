@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, IsArray, IsOptional } from 'class-validator';
 import { CreateBaseArticleDto } from 'src/modules/base-article/dto/create-article.dto';
 
@@ -24,6 +25,25 @@ export class CreateRaceArticleDto extends CreateBaseArticleDto {
   skinColor: string;
 
   @ApiProperty({ description: 'Отличительные признаки', type: [String] })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item) => item !== '');
+    }
+    if (Array.isArray(value)) {
+      return value.flatMap((item) =>
+        typeof item === 'string'
+          ? item
+              .split(',')
+              .map((subItem) => subItem.trim())
+              .filter((subItem) => subItem !== '')
+          : item,
+      );
+    }
+    return [];
+  })
   @IsArray()
   @IsString({ each: true })
   distinctiveFeatures: string[];
@@ -42,6 +62,25 @@ export class CreateRaceArticleDto extends CreateBaseArticleDto {
     description: 'Известные представители',
     type: [String],
     required: false,
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item) => item !== '');
+    }
+    if (Array.isArray(value)) {
+      return value.flatMap((item) =>
+        typeof item === 'string'
+          ? item
+              .split(',')
+              .map((subItem) => subItem.trim())
+              .filter((subItem) => subItem !== '')
+          : item,
+      );
+    }
+    return [];
   })
   @IsOptional()
   @IsArray()

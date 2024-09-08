@@ -32,6 +32,9 @@ export class BaseArticle extends Document {
 
   @Prop({ default: 0 })
   readingTime: number;
+
+  @Prop({ default: 0 })
+  likesCount: number;
 }
 
 export const BaseArticleSchema = SchemaFactory.createForClass(BaseArticle);

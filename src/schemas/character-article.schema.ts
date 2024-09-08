@@ -1,7 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { BaseArticle } from './base-article.schema';
 
-@Schema()
+@Schema({
+  timestamps: true,
+  toObject: {
+    // Преобразование _id в строку, иначе при вызове plainToClass _id меняет значение
+    transform: (doc, ret) => {
+      ret._id = ret._id.toString();
+      return ret;
+    },
+  },
+})
 export class CharacterArticle extends BaseArticle {
   @Prop({ required: true })
   characterName: string;

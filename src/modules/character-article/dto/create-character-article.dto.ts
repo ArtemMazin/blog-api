@@ -36,6 +36,7 @@ export class CreateCharacterArticleDto extends CreateBaseArticleDto {
 
   @ApiProperty({ description: 'Рост персонажа', required: false })
   @IsOptional()
+  @IsString()
   height?: string;
 
   @ApiProperty({ description: 'Родной мир персонажа' })

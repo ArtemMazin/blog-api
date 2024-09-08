@@ -179,31 +179,24 @@ export abstract class BaseArticleService<
 
   // Удаление статьи
   async deleteArticle(id: string): Promise<ResponseDto> {
-    const session = await this.articleModel.db.startSession();
-    session.startTransaction();
-
     try {
       const deletedArticle = await this.articleModel
         .findByIdAndDelete(id)
         .populate('author')
-        .session(session)
         .exec();
 
       if (!deletedArticle) {
         throw new NotFoundException(`Статья с ID ${id} не найдена`);
       }
 
-      await this.usersService.removeArticleFromAllFavorites(id, session);
+      // Удаление статьи из избранного у всех пользователей
+      await this.usersService.removeArticleFromAllFavorites(id);
 
-      await session.commitTransaction();
       this.logger.log(`Статья успешно удалена: ${id}`);
       return this.toArticleResponse(deletedArticle);
     } catch (error) {
-      await session.abortTransaction();
       this.logger.error(`Ошибка при удалении статьи: ${error.message}`);
       throw error;
-    } finally {
-      session.endSession();
     }
   }
 
@@ -246,6 +239,68 @@ export abstract class BaseArticleService<
       return article.author._id.toString();
     } catch (error) {
       this.logger.error(`Ошибка при получении автора статьи: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // Увеличение количества лайков статьи
+  async likeArticle(id: string): Promise<ResponseDto> {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new InvalidIdFormatException();
+    }
+
+    try {
+      const article = await this.articleModel
+        .findByIdAndUpdate(id, { $inc: { likesCount: 1 } }, { new: true })
+        .populate('author');
+
+      if (!article) {
+        throw new NotFoundException(`Статья с ID ${id} не найдена`);
+      }
+
+      return this.toArticleResponse(article);
+    } catch (error) {
+      this.logger.error(`Ошибка при лайке статьи: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async unlikeArticle(id: string): Promise<ResponseDto> {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new InvalidIdFormatException();
+    }
+
+    try {
+      const article = await this.articleModel
+        .findByIdAndUpdate(id, { $inc: { likesCount: -1 } }, { new: true })
+        .populate('author');
+
+      if (!article) {
+        throw new NotFoundException(`Статья с ID ${id} не найдена`);
+      }
+
+      return this.toArticleResponse(article);
+    } catch (error) {
+      this.logger.error(`Ошибка при лайке статьи: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // Получение топ-5 статей
+  async getTopArticles(): Promise<ResponseDto[]> {
+    this.logger.log('Получение топ-5 статей');
+
+    try {
+      const topArticles = await this.articleModel
+        .find()
+        .sort({ likesCount: -1 })
+        .limit(5)
+        .populate('author')
+        .exec();
+
+      return topArticles.map((article) => this.toArticleResponse(article));
+    } catch (error) {
+      this.logger.error(`Ошибка при получении топ-5 статей: ${error.message}`);
       throw error;
     }
   }

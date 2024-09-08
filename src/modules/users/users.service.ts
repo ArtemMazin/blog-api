@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/user.schema';
-import { ClientSession, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { IncorrectDataException } from 'src/errors/IncorrectDataException';
 import { ResponseUserDto } from './dto';
 import { RegisterDto } from 'src/modules/auth/dto';
@@ -122,24 +122,11 @@ export class UsersService {
     return this.toUserResponse(updatedUser);
   }
 
-  async removeArticleFromAllFavorites(
-    articleId: string,
-    session?: ClientSession,
-  ): Promise<void> {
-    this.logger.log(
-      `Удаление статьи ${articleId} из избранного всех пользователей`,
+  async removeArticleFromAllFavorites(articleId: string): Promise<void> {
+    await this.userModel.updateMany(
+      { favoriteArticles: articleId },
+      { $pull: { favoriteArticles: articleId } },
     );
-
-    const updateOperation = this.userModel.updateMany(
-      { favorite_articles: articleId },
-      { $pull: { favorite_articles: articleId } },
-    );
-
-    if (session) {
-      await updateOperation.session(session);
-    } else {
-      await updateOperation;
-    }
   }
 
   async updateProfile(
