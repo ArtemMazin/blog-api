@@ -207,7 +207,8 @@ export class AuthService {
   private setAccessTokenCookie(res: Response, accessToken: string): void {
     res.cookie(AUTH_CONSTANTS.COOKIE_NAME, accessToken, {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'none',
+      secure: true,
       maxAge: 24 * 60 * 60 * 1000, // 1 день в миллисекундах
     });
   }

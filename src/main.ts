@@ -18,9 +18,17 @@ async function bootstrap() {
 
   // Настройка CORS
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://viva-msk-test.ru'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    origin: [
+      'http://localhost:3000',
+      'https://viva-msk-test.online',
+      'https://blog-psi-nine-19.vercel.app',
+      'https://blog-git-main-artems-projects-3eddffb7.vercel.app',
+      'https://blog-lnxb4p3d0-artems-projects-3eddffb7.vercel.app',
+      'https://blog-artems-projects-3eddffb7.vercel.app',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   // Настройка парсера куки
