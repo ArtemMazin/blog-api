@@ -17,7 +17,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiOkResponse,
-  ApiCreatedResponse,
   ApiBody,
   ApiConsumes,
   ApiParam,
@@ -85,20 +84,32 @@ export class CharacterArticleController extends BaseArticleController<
     return super.getOneArticle(id, req.user);
   }
 
+  @Get('by-race/:raceId')
+  @ApiOperation({ summary: 'Получить статьи о персонажах по расе' })
+  @ApiParam({ name: 'raceId', type: String, description: 'ID расы' })
+  @ApiOkResponse({ type: ResponseCharacterArticleDto, isArray: true })
+  async getArticlesByRace(
+    @Param('raceId') raceId: string,
+  ): Promise<ResponseCharacterArticleDto[]> {
+    return this.characterArticleService.findArticlesByRace(raceId);
+  }
+
   @Post('create')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Создать новую статью о персонаже' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: CreateCharacterArticleDto })
-  @ApiCreatedResponse({ type: ResponseCharacterArticleDto })
-  @ApiAuthResponses()
-  createCharacterArticle(
+  async createCharacterArticle(
     @Body() createArticleDto: CreateCharacterArticleDto,
     @Req() req: { user: ResponseUserDto },
     @UploadedFile() file: Express.Multer.File,
-  ) {
-    return super.createArticle(createArticleDto, req.user, file);
+  ): Promise<ResponseCharacterArticleDto> {
+    return this.characterArticleService.createArticle(
+      createArticleDto,
+      req.user,
+      file,
+    );
   }
 
   @Patch('update/:id')

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsMongoId,
+} from 'class-validator';
 import { CreateBaseArticleDto } from 'src/modules/base-article/dto/create-article.dto';
 
 enum Gender {
@@ -24,9 +30,9 @@ export class CreateCharacterArticleDto extends CreateBaseArticleDto {
   @IsString()
   deathDate?: string;
 
-  @ApiProperty({ description: 'Раса персонажа' })
+  @ApiProperty({ description: 'ID расы персонажа' })
   @IsNotEmpty()
-  @IsString()
+  @IsMongoId()
   race: string;
 
   @ApiProperty({ description: 'Пол персонажа', enum: Gender })

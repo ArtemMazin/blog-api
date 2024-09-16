@@ -11,11 +11,16 @@ import { User, UserSchema } from 'src/schemas/user.schema';
 import { MulterModule } from '@nestjs/platform-express';
 import { articleImageOptions } from 'src/config/multer.config';
 import { AuthorGuard } from 'src/guards/author.guard';
+import {
+  RaceArticle,
+  RaceArticleSchema,
+} from 'src/schemas/race-article.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: CharacterArticle.name, schema: CharacterArticleSchema },
+      { name: RaceArticle.name, schema: RaceArticleSchema },
     ]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MulterModule.register({ storage: articleImageOptions.storage }),

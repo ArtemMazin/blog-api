@@ -13,6 +13,8 @@ import {
   UpdateCharacterArticleDto,
   ResponseCharacterArticleDto,
 } from './dto';
+import { NotFoundException } from '@nestjs/common';
+import { RaceArticle } from 'src/schemas/race-article.schema';
 
 export class CharacterArticleService
   extends BaseArticleService<
@@ -27,9 +29,41 @@ export class CharacterArticleService
     @InjectModel(CharacterArticle.name)
     characterArticleModel: Model<CharacterArticle>,
     @InjectModel(User.name) userModel: Model<User>,
+    @InjectModel(RaceArticle.name) private raceArticleModel: Model<RaceArticle>,
     usersService: UsersService,
   ) {
     super(usersService, characterArticleModel, userModel);
+  }
+
+  async createArticle(
+    createArticleDto: CreateCharacterArticleDto,
+    user: ResponseUserDto,
+    file: Express.Multer.File,
+  ): Promise<ResponseCharacterArticleDto> {
+    const race = await this.raceArticleModel.findById(createArticleDto.race);
+    if (!race) {
+      throw new NotFoundException(
+        `Раса с ID ${createArticleDto.race} не найдена`,
+      );
+    }
+
+    const article = await super.createArticle(createArticleDto, user, file);
+    return article;
+  }
+
+  async findArticlesByRace(
+    raceId: string,
+  ): Promise<ResponseCharacterArticleDto[]> {
+    const race = await this.raceArticleModel.findById(raceId);
+    if (!race) {
+      throw new NotFoundException(`Раса с ID ${raceId} не найдена`);
+    }
+
+    const articles = await this.articleModel
+      .find({ race: raceId })
+      .populate('author')
+      .exec();
+    return articles.map((article) => this.toArticleResponse(article));
   }
 
   // Реализация метода преобразования статьи в DTO ответа
