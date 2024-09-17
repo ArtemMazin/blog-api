@@ -66,4 +66,62 @@ export class RaceArticleService
       `Премиум-доступ подтвержден для пользователя: ${userData._id}`,
     );
   }
+
+  protected prepareArticleData(
+    createArticleDto: CreateRaceArticleDto,
+    user: ResponseUserDto,
+    file: Express.Multer.File,
+  ): Partial<RaceArticle> {
+    const baseData = super.prepareArticleData(createArticleDto, user, file);
+
+    const distinctiveFeatures = createArticleDto.distinctiveFeatures
+      ? createArticleDto.distinctiveFeatures
+          .split(',')
+          .map((item) => item.trim())
+      : [];
+
+    const knownRepresentatives = createArticleDto.knownRepresentatives
+      ? createArticleDto.knownRepresentatives
+          .split(',')
+          .map((item) => item.trim())
+      : [];
+
+    return {
+      ...baseData,
+      distinctiveFeatures,
+      knownRepresentatives,
+    };
+  }
+
+  protected prepareUpdateData(
+    existingArticle: RaceArticle,
+    updateArticleDto: UpdateRaceArticleDto,
+    user: ResponseUserDto,
+    file?: Express.Multer.File,
+  ): Partial<RaceArticle> {
+    const baseData = super.prepareUpdateData(
+      existingArticle,
+      updateArticleDto,
+      user,
+      file,
+    );
+
+    const distinctiveFeatures = updateArticleDto.distinctiveFeatures
+      ? updateArticleDto.distinctiveFeatures
+          .split(',')
+          .map((item) => item.trim())
+      : existingArticle.distinctiveFeatures;
+
+    const knownRepresentatives = updateArticleDto.knownRepresentatives
+      ? updateArticleDto.knownRepresentatives
+          .split(',')
+          .map((item) => item.trim())
+      : [];
+
+    return {
+      ...baseData,
+      distinctiveFeatures,
+      knownRepresentatives,
+    };
+  }
 }

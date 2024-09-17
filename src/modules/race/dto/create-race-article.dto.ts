@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsString, IsArray, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 import { CreateBaseArticleDto } from 'src/modules/base-article/dto/create-article.dto';
 
 export class CreateRaceArticleDto extends CreateBaseArticleDto {
@@ -24,29 +23,12 @@ export class CreateRaceArticleDto extends CreateBaseArticleDto {
   @IsString()
   skinColor: string;
 
-  @ApiProperty({ description: 'Отличительные признаки', type: [String] })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value
-        .split(',')
-        .map((item) => item.trim())
-        .filter((item) => item !== '');
-    }
-    if (Array.isArray(value)) {
-      return value.flatMap((item) =>
-        typeof item === 'string'
-          ? item
-              .split(',')
-              .map((subItem) => subItem.trim())
-              .filter((subItem) => subItem !== '')
-          : item,
-      );
-    }
-    return [];
+  @ApiProperty({
+    description: 'Отличительные признаки (разделенные запятыми)',
+    type: String,
   })
-  @IsArray()
-  @IsString({ each: true })
-  distinctiveFeatures: string[];
+  @IsString()
+  distinctiveFeatures: string;
 
   @ApiProperty({ description: 'Планета происхождения' })
   @IsNotEmpty()
@@ -59,31 +41,11 @@ export class CreateRaceArticleDto extends CreateBaseArticleDto {
   language: string;
 
   @ApiProperty({
-    description: 'Известные представители',
-    type: [String],
+    description: 'Известные представители (разделенные запятыми)',
+    type: String,
     required: false,
   })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value
-        .split(',')
-        .map((item) => item.trim())
-        .filter((item) => item !== '');
-    }
-    if (Array.isArray(value)) {
-      return value.flatMap((item) =>
-        typeof item === 'string'
-          ? item
-              .split(',')
-              .map((subItem) => subItem.trim())
-              .filter((subItem) => subItem !== '')
-          : item,
-      );
-    }
-    return [];
-  })
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  knownRepresentatives?: string[];
+  @IsString()
+  knownRepresentatives?: string;
 }

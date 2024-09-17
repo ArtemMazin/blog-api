@@ -43,6 +43,40 @@ export abstract class BaseArticleService<
     }
   }
 
+  protected prepareArticleData(
+    createArticleDto: CreateDto,
+    user: ResponseUserDto,
+    file: Express.Multer.File,
+  ): Partial<T> {
+    const readingTime = calculateReadingTime(createArticleDto.content);
+
+    return {
+      ...createArticleDto,
+      author: user,
+      image: file ? file.filename : null,
+      isPremium: createArticleDto.isPremium === 'true',
+      readingTime,
+    };
+  }
+
+  protected prepareUpdateData(
+    existingArticle: T,
+    updateArticleDto: UpdateDto,
+    user: ResponseUserDto,
+    file?: Express.Multer.File,
+  ): Partial<T> {
+    return {
+      ...existingArticle.toObject(),
+      ...updateArticleDto,
+      author: user,
+      image: file ? file.filename : existingArticle.image,
+      isPremium: updateArticleDto.isPremium === 'true',
+      readingTime: updateArticleDto.content
+        ? calculateReadingTime(updateArticleDto.content)
+        : existingArticle.readingTime,
+    };
+  }
+
   // Создание новой статьи
   async createArticle(
     createArticleDto: CreateDto,
@@ -54,15 +88,8 @@ export abstract class BaseArticleService<
     try {
       this.checkPremiumStatus(createArticleDto.isPremium, user);
 
-      const readingTime = calculateReadingTime(createArticleDto.content);
-
-      const createdArticle = new this.articleModel({
-        ...createArticleDto,
-        author: user,
-        image: file ? file.filename : null,
-        isPremium: createArticleDto.isPremium === 'true',
-        readingTime,
-      });
+      const articleData = this.prepareArticleData(createArticleDto, user, file);
+      const createdArticle = new this.articleModel(articleData);
 
       const savedArticle = await createdArticle.save();
       this.logger.log(`Статья успешно создана: ${savedArticle._id}`);
@@ -91,16 +118,12 @@ export abstract class BaseArticleService<
 
     this.checkPremiumStatus(updateArticleDto.isPremium, user);
 
-    const updateData = {
-      ...existingArticle.toObject(),
-      ...updateArticleDto,
-      author: user,
-      image: file ? file.filename : existingArticle.image,
-      isPremium: updateArticleDto.isPremium === 'true',
-      readingTime: updateArticleDto.content
-        ? calculateReadingTime(updateArticleDto.content)
-        : existingArticle.readingTime,
-    };
+    const updateData = this.prepareUpdateData(
+      existingArticle,
+      updateArticleDto,
+      user,
+      file,
+    );
 
     const updatedArticle = await this.articleModel
       .findByIdAndUpdate(id, updateData, { new: true, runValidators: true })

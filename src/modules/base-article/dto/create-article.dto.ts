@@ -29,5 +29,5 @@ export class CreateBaseArticleDto {
     format: 'binary',
     description: 'Изображение статьи',
   })
-  image: any;
+  image: Express.Multer.File;
 }
