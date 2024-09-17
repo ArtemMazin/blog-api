@@ -1,14 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { BaseArticle } from './base-article.schema';
-import { RaceArticle } from './race-article.schema';
 
 @Schema({
   timestamps: true,
   toObject: {
-    // Преобразование _id в строку, иначе при вызове plainToClass _id меняет значение
     transform: (doc, ret) => {
       ret._id = ret._id.toString();
+      if (ret.race && ret.race._id) {
+        ret.race._id = ret.race._id.toString();
+      }
       return ret;
     },
   },
@@ -23,8 +24,17 @@ export class CharacterArticle extends BaseArticle {
   @Prop({ type: String })
   deathDate: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'RaceArticle', required: true })
-  race: RaceArticle;
+  @Prop({
+    type: {
+      _id: { type: Types.ObjectId, ref: 'RaceArticle', required: true },
+      raceName: { type: String, required: true },
+    },
+    required: true,
+  })
+  race: {
+    _id: string;
+    raceName: string;
+  };
 
   @Prop({ required: true, enum: ['Мужской', 'Женский', 'Другое'] })
   gender: string;

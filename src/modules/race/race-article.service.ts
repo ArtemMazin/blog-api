@@ -67,12 +67,16 @@ export class RaceArticleService
     );
   }
 
-  protected prepareArticleData(
+  protected async prepareArticleData(
     createArticleDto: CreateRaceArticleDto,
     user: ResponseUserDto,
     file: Express.Multer.File,
-  ): Partial<RaceArticle> {
-    const baseData = super.prepareArticleData(createArticleDto, user, file);
+  ): Promise<Partial<RaceArticle>> {
+    const baseData = await super.prepareArticleData(
+      createArticleDto,
+      user,
+      file,
+    );
 
     const distinctiveFeatures = createArticleDto.distinctiveFeatures
       ? createArticleDto.distinctiveFeatures
@@ -93,13 +97,13 @@ export class RaceArticleService
     };
   }
 
-  protected prepareUpdateData(
+  protected async prepareUpdateData(
     existingArticle: RaceArticle,
     updateArticleDto: UpdateRaceArticleDto,
     user: ResponseUserDto,
     file?: Express.Multer.File,
-  ): Partial<RaceArticle> {
-    const baseData = super.prepareUpdateData(
+  ): Promise<Partial<RaceArticle>> {
+    const baseData = await super.prepareUpdateData(
       existingArticle,
       updateArticleDto,
       user,

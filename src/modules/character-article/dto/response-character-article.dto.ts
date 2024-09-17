@@ -1,7 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { ResponseBaseArticleDto } from 'src/modules/base-article/dto/response-article.dto';
-import { ResponseRaceArticleDto } from 'src/modules/race/dto';
+
+class RaceInfo {
+  @ApiProperty({ description: 'ID расы' })
+  @Expose()
+  _id: string;
+
+  @ApiProperty({ description: 'Название расы' })
+  @Expose()
+  raceName: string;
+}
 
 export class ResponseCharacterArticleDto extends ResponseBaseArticleDto {
   @ApiProperty({ description: 'Имя персонажа' })
@@ -16,10 +25,10 @@ export class ResponseCharacterArticleDto extends ResponseBaseArticleDto {
   @Expose()
   deathDate?: string;
 
-  @ApiProperty({ description: 'Раса персонажа' })
+  @ApiProperty({ description: 'Информация о расе персонажа' })
   @Expose()
-  @Type(() => ResponseRaceArticleDto)
-  race: ResponseRaceArticleDto;
+  @Type(() => RaceInfo)
+  race: RaceInfo;
 
   @ApiProperty({ description: 'Пол персонажа' })
   @Expose()

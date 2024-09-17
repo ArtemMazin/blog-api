@@ -35,11 +35,16 @@ export class CharacterArticleService
     super(usersService, characterArticleModel, userModel);
   }
 
-  async createArticle(
+  protected async prepareArticleData(
     createArticleDto: CreateCharacterArticleDto,
     user: ResponseUserDto,
     file: Express.Multer.File,
-  ): Promise<ResponseCharacterArticleDto> {
+  ): Promise<Partial<CharacterArticle>> {
+    const baseData = await super.prepareArticleData(
+      createArticleDto,
+      user,
+      file,
+    );
     const race = await this.raceArticleModel.findById(createArticleDto.race);
     if (!race) {
       throw new NotFoundException(
@@ -47,8 +52,40 @@ export class CharacterArticleService
       );
     }
 
-    const article = await super.createArticle(createArticleDto, user, file);
-    return article;
+    return {
+      ...baseData,
+      race: {
+        _id: race._id.toString(),
+        raceName: race.raceName,
+      },
+    };
+  }
+
+  protected async prepareUpdateData(
+    existingArticle: CharacterArticle,
+    updateArticleDto: UpdateCharacterArticleDto,
+    user: ResponseUserDto,
+    file?: Express.Multer.File,
+  ): Promise<Partial<CharacterArticle>> {
+    const baseData = await super.prepareUpdateData(
+      existingArticle,
+      updateArticleDto,
+      user,
+      file,
+    );
+    const race = await this.raceArticleModel.findById(updateArticleDto.race);
+    if (!race) {
+      throw new NotFoundException(
+        `Раса с ID ${updateArticleDto.race} не найдена`,
+      );
+    }
+    return {
+      ...baseData,
+      race: {
+        _id: race._id.toString(),
+        raceName: race.raceName,
+      },
+    };
   }
 
   async findArticlesByRace(

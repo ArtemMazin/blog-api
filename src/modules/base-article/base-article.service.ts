@@ -43,11 +43,11 @@ export abstract class BaseArticleService<
     }
   }
 
-  protected prepareArticleData(
+  protected async prepareArticleData(
     createArticleDto: CreateDto,
     user: ResponseUserDto,
     file: Express.Multer.File,
-  ): Partial<T> {
+  ): Promise<Partial<T>> {
     const readingTime = calculateReadingTime(createArticleDto.content);
 
     return {
@@ -59,12 +59,12 @@ export abstract class BaseArticleService<
     };
   }
 
-  protected prepareUpdateData(
+  protected async prepareUpdateData(
     existingArticle: T,
     updateArticleDto: UpdateDto,
     user: ResponseUserDto,
     file?: Express.Multer.File,
-  ): Partial<T> {
+  ): Promise<Partial<T>> {
     return {
       ...existingArticle.toObject(),
       ...updateArticleDto,
@@ -88,7 +88,11 @@ export abstract class BaseArticleService<
     try {
       this.checkPremiumStatus(createArticleDto.isPremium, user);
 
-      const articleData = this.prepareArticleData(createArticleDto, user, file);
+      const articleData = await this.prepareArticleData(
+        createArticleDto,
+        user,
+        file,
+      );
       const createdArticle = new this.articleModel(articleData);
 
       const savedArticle = await createdArticle.save();
@@ -118,7 +122,7 @@ export abstract class BaseArticleService<
 
     this.checkPremiumStatus(updateArticleDto.isPremium, user);
 
-    const updateData = this.prepareUpdateData(
+    const updateData = await this.prepareUpdateData(
       existingArticle,
       updateArticleDto,
       user,
