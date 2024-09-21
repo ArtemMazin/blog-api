@@ -32,7 +32,6 @@ import {
 } from 'src/decorators/api-responses.decorator';
 import { BaseArticleController } from '../base-article/base-article.controller';
 import { CharacterArticleService } from './character-article.service';
-import { CharacterArticle } from 'src/schemas/character-article.schema';
 import {
   CreateCharacterArticleDto,
   UpdateCharacterArticleDto,
@@ -43,11 +42,9 @@ import { ResponseUserDto } from '../users/dto';
 @ApiTags('Статьи о персонажах')
 @Controller('character-articles')
 export class CharacterArticleController extends BaseArticleController<
-  CharacterArticle,
   CreateCharacterArticleDto,
   UpdateCharacterArticleDto,
   ResponseCharacterArticleDto
-  // CharacterArticleService
 > {
   constructor(private characterArticleService: CharacterArticleService) {
     super(characterArticleService);
@@ -105,11 +102,7 @@ export class CharacterArticleController extends BaseArticleController<
     @Req() req: { user: ResponseUserDto },
     @UploadedFile() file: Express.Multer.File,
   ): Promise<ResponseCharacterArticleDto> {
-    return this.characterArticleService.createArticle(
-      createArticleDto,
-      req.user,
-      file,
-    );
+    return super.createArticle(createArticleDto, req.user, file);
   }
 
   @Patch('update/:id')
@@ -140,6 +133,20 @@ export class CharacterArticleController extends BaseArticleController<
     return super.deleteArticle(id);
   }
 
+  @Patch('set-race/:id')
+  @UseGuards(JwtAuthGuard, AuthorGuard)
+  @ApiOperation({ summary: 'Установить расу для персонажа' })
+  @ApiParam({ name: 'id', type: String, description: 'ID статьи о персонаже' })
+  @ApiBody({ schema: { properties: { raceId: { type: 'string' } } } })
+  @ApiOkResponse({ type: ResponseCharacterArticleDto })
+  @ApiAuthResponses()
+  async setRaceForCharacter(
+    @Param('id') id: string,
+    @Body('raceId') raceId: string,
+  ): Promise<ResponseCharacterArticleDto> {
+    return this.characterArticleService.setRaceForCharacter(id, raceId);
+  }
+
   @Get('search')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Поиск статей о персонажах' })
@@ -157,7 +164,7 @@ export class CharacterArticleController extends BaseArticleController<
   @ApiOkResponse({ type: ResponseCharacterArticleDto })
   @ApiAuthResponses()
   likeCharacterArticle(@Param('id') id: string) {
-    return this.characterArticleService.likeArticle(id);
+    return super.likeArticle(id);
   }
 
   @Post('unlike/:id')
@@ -167,7 +174,7 @@ export class CharacterArticleController extends BaseArticleController<
   @ApiOkResponse({ type: ResponseCharacterArticleDto })
   @ApiAuthResponses()
   unlikeCharacterArticle(@Param('id') id: string) {
-    return this.characterArticleService.unlikeArticle(id);
+    return super.unlikeArticle(id);
   }
 
   @Get('top')
@@ -175,6 +182,6 @@ export class CharacterArticleController extends BaseArticleController<
   @ApiOkResponse({ type: ResponseCharacterArticleDto, isArray: true })
   @ApiCommonResponses()
   getTopCharacterArticles() {
-    return this.characterArticleService.getTopArticles();
+    return super.getTopArticles();
   }
 }

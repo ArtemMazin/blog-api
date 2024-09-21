@@ -32,7 +32,6 @@ import {
   ApiSuccessResponse,
 } from 'src/decorators/api-responses.decorator';
 import { BaseArticleController } from '../base-article/base-article.controller';
-import { RaceArticle } from 'src/schemas/race-article.schema';
 import { ResponseUserDto } from '../users/dto';
 import {
   CreateRaceArticleDto,
@@ -44,7 +43,6 @@ import { RaceArticleService } from './race-article.service';
 @ApiTags('Статьи о расах')
 @Controller('race-articles')
 export class RaceArticleController extends BaseArticleController<
-  RaceArticle,
   CreateRaceArticleDto,
   UpdateRaceArticleDto,
   ResponseRaceArticleDto

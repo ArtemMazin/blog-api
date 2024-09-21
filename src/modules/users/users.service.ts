@@ -55,6 +55,12 @@ export class UsersService {
     }
   }
 
+  async findAll(): Promise<ResponseUserDto[]> {
+    this.logger.log('Получение всех пользователей');
+    const users = await this.userModel.find().exec();
+    return users.map((user) => this.toUserResponse(user));
+  }
+
   async findById(id: string): Promise<ResponseUserDto> {
     this.logger.log(`Поиск пользователя по ID: ${id}`);
     if (!id) {

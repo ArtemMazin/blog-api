@@ -1,7 +1,6 @@
 import { ResponseUserDto } from '../users/dto';
 
 export abstract class BaseArticleController<
-  T,
   CreateDto,
   UpdateDto,
   ResponseDto,
@@ -28,7 +27,7 @@ export abstract class BaseArticleController<
     createArticleDto: CreateDto,
     user: ResponseUserDto,
     file: Express.Multer.File,
-  ): Promise<T> {
+  ): Promise<ResponseDto> {
     return await this.service.createArticle(createArticleDto, user, file);
   }
 
@@ -47,5 +46,21 @@ export abstract class BaseArticleController<
 
   protected async searchArticles(query: string): Promise<ResponseDto[]> {
     return this.service.searchArticles(query);
+  }
+
+  protected async likeArticle(id: string): Promise<ResponseDto> {
+    return this.service.likeArticle(id);
+  }
+
+  protected async unlikeArticle(id: string): Promise<ResponseDto> {
+    return this.service.unlikeArticle(id);
+  }
+
+  protected async getTopArticles(): Promise<ResponseDto[]> {
+    return this.service.getTopArticles();
+  }
+
+  protected async getArticleAuthor(id: string): Promise<string> {
+    return this.service.getArticleAuthor(id);
   }
 }

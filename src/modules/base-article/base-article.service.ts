@@ -1,4 +1,4 @@
-import mongoose, { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import {
   ForbiddenException,
   Injectable,
@@ -111,7 +111,7 @@ export abstract class BaseArticleService<
     updateArticleDto: UpdateDto,
     file?: Express.Multer.File,
   ): Promise<ResponseDto> {
-    if (!mongoose.isValidObjectId(id)) {
+    if (!isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
 
@@ -143,7 +143,7 @@ export abstract class BaseArticleService<
   ): Promise<ResponseDto> {
     this.logger.log(`Поиск статьи по ID: ${id}`);
 
-    if (!mongoose.isValidObjectId(id)) {
+    if (!isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
 
@@ -185,7 +185,7 @@ export abstract class BaseArticleService<
   async findMyAllArticles(userId: string): Promise<ResponseDto[]> {
     this.logger.log(`Поиск всех статей пользователя: ${userId}`);
 
-    if (!mongoose.isValidObjectId(userId)) {
+    if (!isValidObjectId(userId)) {
       throw new InvalidIdFormatException();
     }
 
@@ -252,7 +252,7 @@ export abstract class BaseArticleService<
   async getArticleAuthor(id: string): Promise<string> {
     this.logger.log(`Получение автора статьи: ${id}`);
 
-    if (!mongoose.isValidObjectId(id)) {
+    if (!isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
 
@@ -272,7 +272,7 @@ export abstract class BaseArticleService<
 
   // Увеличение количества лайков статьи
   async likeArticle(id: string): Promise<ResponseDto> {
-    if (!mongoose.isValidObjectId(id)) {
+    if (!isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
 
@@ -293,7 +293,7 @@ export abstract class BaseArticleService<
   }
 
   async unlikeArticle(id: string): Promise<ResponseDto> {
-    if (!mongoose.isValidObjectId(id)) {
+    if (!isValidObjectId(id)) {
       throw new InvalidIdFormatException();
     }
 

@@ -25,10 +25,15 @@ export class ResponseCharacterArticleDto extends ResponseBaseArticleDto {
   @Expose()
   deathDate?: string;
 
-  @ApiProperty({ description: 'Информация о расе персонажа' })
+  @ApiProperty({
+    description: 'Информация о расе персонажа',
+    required: false,
+    type: RaceInfo,
+    default: null,
+  })
   @Expose()
   @Type(() => RaceInfo)
-  race: RaceInfo;
+  race?: RaceInfo;
 
   @ApiProperty({ description: 'Пол персонажа' })
   @Expose()

@@ -29,12 +29,12 @@ export class CharacterArticle extends BaseArticle {
       _id: { type: Types.ObjectId, ref: 'RaceArticle', required: true },
       raceName: { type: String, required: true },
     },
-    required: true,
+    default: null,
   })
   race: {
     _id: string;
     raceName: string;
-  };
+  } | null;
 
   @Prop({ required: true, enum: ['Мужской', 'Женский', 'Другое'] })
   gender: string;

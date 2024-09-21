@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import { UsersService } from '../users/users.service';
 import { BaseArticleService } from 'src/modules/base-article/base-article.service';
 import { CharacterArticle } from 'src/schemas/character-article.schema';
@@ -13,7 +13,7 @@ import {
   UpdateCharacterArticleDto,
   ResponseCharacterArticleDto,
 } from './dto';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { RaceArticle } from 'src/schemas/race-article.schema';
 
 export class CharacterArticleService
@@ -45,19 +45,15 @@ export class CharacterArticleService
       user,
       file,
     );
-    const race = await this.raceArticleModel.findById(createArticleDto.race);
-    if (!race) {
-      throw new NotFoundException(
-        `Раса с ID ${createArticleDto.race} не найдена`,
-      );
-    }
 
     return {
       ...baseData,
-      race: {
-        _id: race._id.toString(),
-        raceName: race.raceName,
-      },
+      characterName: createArticleDto.characterName,
+      birthDate: createArticleDto.birthDate,
+      deathDate: createArticleDto.deathDate,
+      gender: createArticleDto.gender,
+      height: createArticleDto.height,
+      homeWorld: createArticleDto.homeWorld,
     };
   }
 
@@ -73,19 +69,51 @@ export class CharacterArticleService
       user,
       file,
     );
-    const race = await this.raceArticleModel.findById(updateArticleDto.race);
-    if (!race) {
-      throw new NotFoundException(
-        `Раса с ID ${updateArticleDto.race} не найдена`,
-      );
-    }
+
     return {
       ...baseData,
+      characterName:
+        updateArticleDto.characterName ?? existingArticle.characterName,
+      birthDate: updateArticleDto.birthDate ?? existingArticle.birthDate,
+      deathDate: updateArticleDto.deathDate ?? existingArticle.deathDate,
+      gender: updateArticleDto.gender ?? existingArticle.gender,
+      height: updateArticleDto.height ?? existingArticle.height,
+      homeWorld: updateArticleDto.homeWorld ?? existingArticle.homeWorld,
+    };
+  }
+
+  async setRaceForCharacter(
+    articleId: string,
+    raceId: string,
+  ): Promise<ResponseCharacterArticleDto> {
+    if (!isValidObjectId(articleId) || !isValidObjectId(raceId)) {
+      throw new BadRequestException('Неверный формат ID');
+    }
+
+    const race = await this.raceArticleModel.findById(raceId);
+    if (!race) {
+      throw new NotFoundException(`Раса с ID ${raceId} не найдена`);
+    }
+
+    const updateData = {
       race: {
-        _id: race._id.toString(),
+        _id: race._id,
         raceName: race.raceName,
       },
     };
+
+    const article = await this.articleModel
+      .findByIdAndUpdate(articleId, updateData, {
+        new: true,
+        runValidators: true,
+      })
+      .populate('author');
+
+    if (!article) {
+      throw new NotFoundException(`Статья с ID ${articleId} не найдена`);
+    }
+
+    return this.toArticleResponse(article);
   }
 
   async findArticlesByRace(

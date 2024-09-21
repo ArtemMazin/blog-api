@@ -37,6 +37,14 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Получить всех пользователей' })
+  @ApiOkResponse({ type: [ResponseUserDto] })
+  @ApiCommonResponses()
+  async getAllUsers(): Promise<ResponseUserDto[]> {
+    return this.usersService.findAll();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiBearerAuth()
