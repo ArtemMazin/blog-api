@@ -133,8 +133,8 @@ export class RaceArticleService
   // Обработка известных представителей
   private async processKnownRepresentatives(
     newRepresentatives?: string,
-    existingRepresentatives?: Types.ObjectId[],
-  ): Promise<Types.ObjectId[]> {
+    existingRepresentatives?: { _id: Types.ObjectId; name: string }[],
+  ): Promise<{ _id: Types.ObjectId; name: string }[]> {
     if (!newRepresentatives) {
       return existingRepresentatives || [];
     }
@@ -142,7 +142,7 @@ export class RaceArticleService
     const representativeIds = newRepresentatives
       .split(',')
       .map((id) => id.trim());
-    const validIds = [];
+    const processedRepresentatives = [];
 
     for (const id of representativeIds) {
       if (!Types.ObjectId.isValid(id)) {
@@ -154,9 +154,12 @@ export class RaceArticleService
         throw new BadRequestException(`Персонаж с ID ${id} не найден`);
       }
 
-      validIds.push(new Types.ObjectId(id));
+      processedRepresentatives.push({
+        _id: new Types.ObjectId(id),
+        name: character.characterName,
+      });
     }
 
-    return validIds;
+    return processedRepresentatives;
   }
 }

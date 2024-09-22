@@ -41,7 +41,8 @@ export class CreateRaceArticleDto extends CreateBaseArticleDto {
   language: string;
 
   @ApiProperty({
-    description: 'Известные представители (разделенные запятыми)',
+    description:
+      'Известные представители (ID персонажей, разделенные запятыми)',
     type: String,
     required: false,
   })

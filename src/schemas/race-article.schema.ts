@@ -5,13 +5,13 @@ import { Types } from 'mongoose';
 @Schema({
   timestamps: true,
   toObject: {
-    // Преобразование _id в строку, иначе при вызове plainToClass _id меняет значение
     transform: (doc, ret) => {
       ret._id = ret._id.toString();
       if (ret.knownRepresentatives) {
-        ret.knownRepresentatives = ret.knownRepresentatives.map((_id) =>
-          _id.toString(),
-        );
+        ret.knownRepresentatives = ret.knownRepresentatives.map((rep) => ({
+          _id: rep._id.toString(),
+          name: rep.name,
+        }));
       }
       return ret;
     },
@@ -40,10 +40,15 @@ export class RaceArticle extends BaseArticle {
   language: string;
 
   @Prop({
-    type: [{ type: Types.ObjectId, ref: 'CharacterArticle' }],
+    type: [
+      {
+        _id: { type: Types.ObjectId, ref: 'CharacterArticle' },
+        name: String,
+      },
+    ],
     default: [],
   })
-  knownRepresentatives: Types.ObjectId[];
+  knownRepresentatives: { _id: Types.ObjectId; name: string }[];
 }
 
 export const RaceArticleSchema = SchemaFactory.createForClass(RaceArticle);

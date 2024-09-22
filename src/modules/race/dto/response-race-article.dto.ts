@@ -2,6 +2,16 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { ResponseBaseArticleDto } from 'src/modules/base-article/dto/response-article.dto';
 
+class KnownRepresentativeResponseDto {
+  @ApiProperty({ description: 'ID персонажа' })
+  @Expose()
+  _id: string;
+
+  @ApiProperty({ description: 'Имя персонажа' })
+  @Expose()
+  name: string;
+}
+
 export class ResponseRaceArticleDto extends ResponseBaseArticleDto {
   @ApiProperty({ description: 'Название расы' })
   @Expose()
@@ -31,7 +41,10 @@ export class ResponseRaceArticleDto extends ResponseBaseArticleDto {
   @Expose()
   language: string;
 
-  @ApiProperty({ description: 'Известные представители', type: [String] })
+  @ApiProperty({
+    description: 'Известные представители',
+    type: [KnownRepresentativeResponseDto],
+  })
   @Expose()
-  knownRepresentatives: string[];
+  knownRepresentatives: KnownRepresentativeResponseDto[];
 }
