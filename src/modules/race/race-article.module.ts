@@ -11,6 +11,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { articleImageOptions } from 'src/config/multer.config';
 import { AuthorGuard } from 'src/guards/author.guard';
 import { RaceArticleService } from './race-article.service';
+import { CharacterArticleModule } from '../character-article/character-article.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RaceArticleService } from './race-article.service';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MulterModule.register({ storage: articleImageOptions.storage }),
     UsersModule,
+    CharacterArticleModule,
   ],
   controllers: [RaceArticleController],
   providers: [

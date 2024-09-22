@@ -133,20 +133,6 @@ export class CharacterArticleController extends BaseArticleController<
     return super.deleteArticle(id);
   }
 
-  @Patch('set-race/:id')
-  @UseGuards(JwtAuthGuard, AuthorGuard)
-  @ApiOperation({ summary: 'Установить расу для персонажа' })
-  @ApiParam({ name: 'id', type: String, description: 'ID статьи о персонаже' })
-  @ApiBody({ schema: { properties: { raceId: { type: 'string' } } } })
-  @ApiOkResponse({ type: ResponseCharacterArticleDto })
-  @ApiAuthResponses()
-  async setRaceForCharacter(
-    @Param('id') id: string,
-    @Body('raceId') raceId: string,
-  ): Promise<ResponseCharacterArticleDto> {
-    return this.characterArticleService.setRaceForCharacter(id, raceId);
-  }
-
   @Get('search')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Поиск статей о персонажах' })

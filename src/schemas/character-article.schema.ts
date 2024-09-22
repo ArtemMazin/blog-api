@@ -25,10 +25,11 @@ export class CharacterArticle extends BaseArticle {
   deathDate: string;
 
   @Prop({
-    type: {
-      _id: { type: Types.ObjectId, ref: 'RaceArticle', required: true },
-      raceName: { type: String, required: true },
-    },
+    type:
+      {
+        _id: { type: Types.ObjectId, ref: 'RaceArticle', required: true },
+        raceName: { type: String, required: true },
+      } || null,
     default: null,
   })
   race: {
@@ -37,7 +38,7 @@ export class CharacterArticle extends BaseArticle {
   } | null;
 
   @Prop({ required: true, enum: ['Мужской', 'Женский', 'Другое'] })
-  gender: string;
+  gender: 'Мужской' | 'Женский' | 'Другое';
 
   @Prop({ type: String })
   height: string;

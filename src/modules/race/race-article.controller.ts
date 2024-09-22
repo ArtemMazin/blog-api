@@ -143,7 +143,7 @@ export class RaceArticleController extends BaseArticleController<
   @ApiOkResponse({ type: ResponseRaceArticleDto })
   @ApiAuthResponses()
   likeRaceArticle(@Param('id') id: string) {
-    return this.raceArticleService.likeArticle(id);
+    return super.likeArticle(id);
   }
 
   @Post('unlike/:id')
@@ -153,7 +153,7 @@ export class RaceArticleController extends BaseArticleController<
   @ApiOkResponse({ type: ResponseRaceArticleDto })
   @ApiAuthResponses()
   unlikeRaceArticle(@Param('id') id: string) {
-    return this.raceArticleService.unlikeArticle(id);
+    return super.unlikeArticle(id);
   }
 
   @Get('top')
@@ -161,6 +161,6 @@ export class RaceArticleController extends BaseArticleController<
   @ApiOkResponse({ type: ResponseRaceArticleDto, isArray: true })
   @ApiCommonResponses()
   getTopRaceArticles() {
-    return this.raceArticleService.getTopArticles();
+    return super.getTopArticles();
   }
 }

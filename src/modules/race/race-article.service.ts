@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { UsersService } from '../users/users.service';
 import { BaseArticleService } from 'src/modules/base-article/base-article.service';
 import { RaceArticle } from 'src/schemas/race-article.schema';
@@ -14,6 +14,7 @@ import {
   UpdateRaceArticleDto,
 } from './dto';
 import { IArticleService } from 'types/types';
+import { CharacterArticle } from 'src/schemas/character-article.schema';
 
 @Injectable()
 export class RaceArticleService
@@ -26,22 +27,23 @@ export class RaceArticleService
   implements IArticleService
 {
   constructor(
-    @InjectModel(RaceArticle.name)
-    raceArticleModel: Model<RaceArticle>,
+    @InjectModel(RaceArticle.name) raceArticleModel: Model<RaceArticle>,
     @InjectModel(User.name) userModel: Model<User>,
     usersService: UsersService,
+    @InjectModel(CharacterArticle.name)
+    private characterArticleModel: Model<CharacterArticle>,
   ) {
     super(usersService, raceArticleModel, userModel);
   }
 
-  // Реализация метода преобразования статьи в DTO ответа
+  // Преобразование статьи в DTO ответа
   protected toArticleResponse(article: RaceArticle): ResponseRaceArticleDto {
     return plainToClass(ResponseRaceArticleDto, article.toObject(), {
       excludeExtraneousValues: true,
     });
   }
 
-  // Реализация метода проверки премиум-доступа
+  // Проверка премиум-доступа
   protected async checkPremiumAccess(
     userData?: ResponseUserDto,
   ): Promise<void> {
@@ -67,6 +69,7 @@ export class RaceArticleService
     );
   }
 
+  // Подготовка данных статьи
   protected async prepareArticleData(
     createArticleDto: CreateRaceArticleDto,
     user: ResponseUserDto,
@@ -84,11 +87,9 @@ export class RaceArticleService
           .map((item) => item.trim())
       : [];
 
-    const knownRepresentatives = createArticleDto.knownRepresentatives
-      ? createArticleDto.knownRepresentatives
-          .split(',')
-          .map((item) => item.trim())
-      : [];
+    const knownRepresentatives = await this.processKnownRepresentatives(
+      createArticleDto.knownRepresentatives,
+    );
 
     return {
       ...baseData,
@@ -97,6 +98,7 @@ export class RaceArticleService
     };
   }
 
+  // Подготовка данных для обновления
   protected async prepareUpdateData(
     existingArticle: RaceArticle,
     updateArticleDto: UpdateRaceArticleDto,
@@ -116,16 +118,45 @@ export class RaceArticleService
           .map((item) => item.trim())
       : existingArticle.distinctiveFeatures;
 
-    const knownRepresentatives = updateArticleDto.knownRepresentatives
-      ? updateArticleDto.knownRepresentatives
-          .split(',')
-          .map((item) => item.trim())
-      : [];
+    const knownRepresentatives = await this.processKnownRepresentatives(
+      updateArticleDto.knownRepresentatives,
+      existingArticle.knownRepresentatives,
+    );
 
     return {
       ...baseData,
       distinctiveFeatures,
       knownRepresentatives,
     };
+  }
+
+  // Обработка известных представителей
+  private async processKnownRepresentatives(
+    newRepresentatives?: string,
+    existingRepresentatives?: Types.ObjectId[],
+  ): Promise<Types.ObjectId[]> {
+    if (!newRepresentatives) {
+      return existingRepresentatives || [];
+    }
+
+    const representativeIds = newRepresentatives
+      .split(',')
+      .map((id) => id.trim());
+    const validIds = [];
+
+    for (const id of representativeIds) {
+      if (!Types.ObjectId.isValid(id)) {
+        throw new BadRequestException(`Некорректный ID персонажа: ${id}`);
+      }
+
+      const character = await this.characterArticleModel.findById(id);
+      if (!character) {
+        throw new BadRequestException(`Персонаж с ID ${id} не найден`);
+      }
+
+      validIds.push(new Types.ObjectId(id));
+    }
+
+    return validIds;
   }
 }

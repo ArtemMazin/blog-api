@@ -35,6 +35,6 @@ import {
     },
     AuthorGuard,
   ],
-  exports: [CharacterArticleService],
+  exports: [CharacterArticleService, MongooseModule],
 })
 export class CharacterArticleModule {}

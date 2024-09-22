@@ -23,7 +23,7 @@ export class ResponseCharacterArticleDto extends ResponseBaseArticleDto {
 
   @ApiProperty({ description: 'Дата смерти персонажа', required: false })
   @Expose()
-  deathDate?: string;
+  deathDate: string;
 
   @ApiProperty({
     description: 'Информация о расе персонажа',
@@ -33,7 +33,7 @@ export class ResponseCharacterArticleDto extends ResponseBaseArticleDto {
   })
   @Expose()
   @Type(() => RaceInfo)
-  race?: RaceInfo;
+  race: RaceInfo;
 
   @ApiProperty({ description: 'Пол персонажа' })
   @Expose()
@@ -41,7 +41,7 @@ export class ResponseCharacterArticleDto extends ResponseBaseArticleDto {
 
   @ApiProperty({ description: 'Рост персонажа', required: false })
   @Expose()
-  height?: string;
+  height: string;
 
   @ApiProperty({ description: 'Родной мир персонажа' })
   @Expose()

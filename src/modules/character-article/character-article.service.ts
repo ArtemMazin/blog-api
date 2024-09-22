@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { isValidObjectId, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { UsersService } from '../users/users.service';
 import { BaseArticleService } from 'src/modules/base-article/base-article.service';
 import { CharacterArticle } from 'src/schemas/character-article.schema';
@@ -13,7 +13,7 @@ import {
   UpdateCharacterArticleDto,
   ResponseCharacterArticleDto,
 } from './dto';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { RaceArticle } from 'src/schemas/race-article.schema';
 
 export class CharacterArticleService
@@ -35,6 +35,7 @@ export class CharacterArticleService
     super(usersService, characterArticleModel, userModel);
   }
 
+  // Подготовка данных статьи при создании
   protected async prepareArticleData(
     createArticleDto: CreateCharacterArticleDto,
     user: ResponseUserDto,
@@ -45,18 +46,15 @@ export class CharacterArticleService
       user,
       file,
     );
+    const raceData = await this.getRaceData(createArticleDto.race);
 
     return {
       ...baseData,
-      characterName: createArticleDto.characterName,
-      birthDate: createArticleDto.birthDate,
-      deathDate: createArticleDto.deathDate,
-      gender: createArticleDto.gender,
-      height: createArticleDto.height,
-      homeWorld: createArticleDto.homeWorld,
+      race: raceData,
     };
   }
 
+  // Подготовка данных статьи при обновлении
   protected async prepareUpdateData(
     existingArticle: CharacterArticle,
     updateArticleDto: UpdateCharacterArticleDto,
@@ -69,53 +67,24 @@ export class CharacterArticleService
       user,
       file,
     );
+    const raceData = await this.getRaceData(updateArticleDto.race);
 
     return {
       ...baseData,
-      characterName:
-        updateArticleDto.characterName ?? existingArticle.characterName,
-      birthDate: updateArticleDto.birthDate ?? existingArticle.birthDate,
-      deathDate: updateArticleDto.deathDate ?? existingArticle.deathDate,
-      gender: updateArticleDto.gender ?? existingArticle.gender,
-      height: updateArticleDto.height ?? existingArticle.height,
-      homeWorld: updateArticleDto.homeWorld ?? existingArticle.homeWorld,
+      race: raceData || existingArticle.race,
     };
   }
 
-  async setRaceForCharacter(
-    articleId: string,
-    raceId: string,
-  ): Promise<ResponseCharacterArticleDto> {
-    if (!isValidObjectId(articleId) || !isValidObjectId(raceId)) {
-      throw new BadRequestException('Неверный формат ID');
-    }
-
+  // Получение данных о расе
+  private async getRaceData(
+    raceId: string | undefined,
+  ): Promise<{ _id: string; raceName: string } | null> {
+    if (!raceId) return null;
     const race = await this.raceArticleModel.findById(raceId);
-    if (!race) {
-      throw new NotFoundException(`Раса с ID ${raceId} не найдена`);
-    }
-
-    const updateData = {
-      race: {
-        _id: race._id,
-        raceName: race.raceName,
-      },
-    };
-
-    const article = await this.articleModel
-      .findByIdAndUpdate(articleId, updateData, {
-        new: true,
-        runValidators: true,
-      })
-      .populate('author');
-
-    if (!article) {
-      throw new NotFoundException(`Статья с ID ${articleId} не найдена`);
-    }
-
-    return this.toArticleResponse(article);
+    return race ? { _id: race._id.toString(), raceName: race.raceName } : null;
   }
 
+  // Поиск статей по расе
   async findArticlesByRace(
     raceId: string,
   ): Promise<ResponseCharacterArticleDto[]> {
@@ -131,7 +100,7 @@ export class CharacterArticleService
     return articles.map((article) => this.toArticleResponse(article));
   }
 
-  // Реализация метода преобразования статьи в DTO ответа
+  // Преобразование статьи в DTO ответа
   protected toArticleResponse(
     article: CharacterArticle,
   ): ResponseCharacterArticleDto {
@@ -140,7 +109,7 @@ export class CharacterArticleService
     });
   }
 
-  // Реализация метода проверки премиум-доступа
+  // Проверка премиум-доступа
   protected async checkPremiumAccess(
     userData?: ResponseUserDto,
   ): Promise<void> {

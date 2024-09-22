@@ -24,6 +24,10 @@ export class CreateCharacterArticleDto extends CreateBaseArticleDto {
   @IsString()
   deathDate?: string;
 
+  @ApiProperty({ description: 'ID расы персонажа', required: false })
+  @IsOptional()
+  race?: string;
+
   @ApiProperty({ description: 'Пол персонажа', enum: Gender })
   @IsNotEmpty()
   @IsEnum(Gender)
