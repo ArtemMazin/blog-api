@@ -16,6 +16,7 @@ import { JwtPayload } from 'types/types';
 import { EmailService } from 'src/modules/email/email.service';
 import { ResponseUserDto } from '../users/dto';
 import { UsersService } from '../users/users.service';
+import { UserCollectionService } from '../user-collection/user-collection.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly emailService: EmailService,
+    private readonly userCollectionService: UserCollectionService,
   ) {}
 
   private toUserResponse(user: User): ResponseUserDto {
@@ -45,6 +47,11 @@ export class AuthService {
         ...userData,
         password: hashedPassword,
       });
+
+      // Создаем коллекцию для нового пользователя
+      await this.userCollectionService.initializeCollection(
+        newUser._id.toString(),
+      );
 
       const accessToken = this.generateAccessToken(newUser);
       this.setAccessTokenCookie(res, accessToken);

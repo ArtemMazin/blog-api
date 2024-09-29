@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { UsersService } from '../users/users.service';
-import { BaseArticleService } from 'src/modules/base-article/base-article.service';
+import { UsersService } from '../../users/users.service';
+import { BaseArticleService } from 'src/modules/article/base-article/base-article.service';
 import { RaceArticle } from 'src/schemas/race-article.schema';
 import { User } from 'src/schemas/user.schema';
 import { InvalidPremiumStatus } from 'src/errors/InvalidPremiumStatus';
 import { plainToClass } from 'class-transformer';
-import { ResponseUserDto } from '../users/dto';
+import { ResponseUserDto } from '../../users/dto';
 import {
   CreateRaceArticleDto,
   ResponseRaceArticleDto,

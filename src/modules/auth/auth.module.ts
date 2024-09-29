@@ -9,6 +9,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { jwtConfig } from 'src/config/jwt.config';
 import { EmailService } from 'src/modules/email/email.service';
 import { UsersModule } from '../users/users.module';
+import { UserCollectionModule } from '../user-collection/user-collection.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UsersModule } from '../users/users.module';
       useFactory: jwtConfig,
       inject: [ConfigService],
     }),
+    UserCollectionModule,
   ],
   controllers: [AuthController],
   providers: [

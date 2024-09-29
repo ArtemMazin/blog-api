@@ -11,8 +11,8 @@ import { BaseArticle } from 'src/schemas/base-article.schema';
 import { calculateReadingTime } from 'src/common/constants';
 import { CreateBaseArticleDto } from './dto/create-article.dto';
 import { UpdateBaseArticleDto } from './dto/update-article.dto';
-import { UsersService } from '../users/users.service';
-import { ResponseUserDto } from '../users/dto';
+import { UsersService } from '../../users/users.service';
+import { ResponseUserDto } from '../../users/dto';
 import { IArticleService } from 'types/types';
 
 @Injectable()

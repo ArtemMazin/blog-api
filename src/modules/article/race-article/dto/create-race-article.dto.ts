@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
-import { CreateBaseArticleDto } from 'src/modules/base-article/dto/create-article.dto';
+import { CreateBaseArticleDto } from 'src/modules/article/base-article/dto/create-article.dto';
 
 export class CreateRaceArticleDto extends CreateBaseArticleDto {
   @ApiProperty({ description: 'Название расы' })

@@ -1,40 +1,37 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CharacterArticleService } from './character-article.service';
-import { CharacterArticleController } from './character-article.controller';
-import { UsersModule } from '../users/users.module';
-import {
-  CharacterArticle,
-  CharacterArticleSchema,
-} from 'src/schemas/character-article.schema';
-import { User, UserSchema } from 'src/schemas/user.schema';
-import { MulterModule } from '@nestjs/platform-express';
-import { articleImageOptions } from 'src/config/multer.config';
-import { AuthorGuard } from 'src/guards/author.guard';
+import { RaceArticleController } from './race-article.controller';
+import { UsersModule } from '../../users/users.module';
 import {
   RaceArticle,
   RaceArticleSchema,
 } from 'src/schemas/race-article.schema';
+import { User, UserSchema } from 'src/schemas/user.schema';
+import { MulterModule } from '@nestjs/platform-express';
+import { articleImageOptions } from 'src/config/multer.config';
+import { AuthorGuard } from 'src/guards/author.guard';
+import { RaceArticleService } from './race-article.service';
+import { CharacterArticleModule } from '../character-article/character-article.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: CharacterArticle.name, schema: CharacterArticleSchema },
       { name: RaceArticle.name, schema: RaceArticleSchema },
     ]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MulterModule.register({ storage: articleImageOptions.storage }),
     UsersModule,
+    CharacterArticleModule,
   ],
-  controllers: [CharacterArticleController],
+  controllers: [RaceArticleController],
   providers: [
-    CharacterArticleService,
+    RaceArticleService,
     {
       provide: 'IArticleService',
-      useClass: CharacterArticleService,
+      useClass: RaceArticleService,
     },
     AuthorGuard,
   ],
-  exports: [CharacterArticleService, MongooseModule],
+  exports: [RaceArticleService],
 })
-export class CharacterArticleModule {}
+export class RaceArticleModule {}

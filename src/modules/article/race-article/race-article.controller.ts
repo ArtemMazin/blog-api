@@ -32,7 +32,7 @@ import {
   ApiSuccessResponse,
 } from 'src/decorators/api-responses.decorator';
 import { BaseArticleController } from '../base-article/base-article.controller';
-import { ResponseUserDto } from '../users/dto';
+import { ResponseUserDto } from '../../users/dto';
 import {
   CreateRaceArticleDto,
   ResponseRaceArticleDto,

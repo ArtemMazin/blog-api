@@ -1,12 +1,12 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UsersService } from '../users/users.service';
-import { BaseArticleService } from 'src/modules/base-article/base-article.service';
+import { UsersService } from '../../users/users.service';
+import { BaseArticleService } from 'src/modules/article/base-article/base-article.service';
 import { CharacterArticle } from 'src/schemas/character-article.schema';
 import { User } from 'src/schemas/user.schema';
 import { InvalidPremiumStatus } from 'src/errors/InvalidPremiumStatus';
 import { plainToClass } from 'class-transformer';
-import { ResponseUserDto } from '../users/dto';
+import { ResponseUserDto } from '../../users/dto';
 import { IArticleService } from 'types/types';
 import {
   CreateCharacterArticleDto,

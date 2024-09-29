@@ -1,37 +1,40 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { RaceArticleController } from './race-article.controller';
-import { UsersModule } from '../users/users.module';
+import { CharacterArticleService } from './character-article.service';
+import { CharacterArticleController } from './character-article.controller';
+import { UsersModule } from '../../users/users.module';
 import {
-  RaceArticle,
-  RaceArticleSchema,
-} from 'src/schemas/race-article.schema';
+  CharacterArticle,
+  CharacterArticleSchema,
+} from 'src/schemas/character-article.schema';
 import { User, UserSchema } from 'src/schemas/user.schema';
 import { MulterModule } from '@nestjs/platform-express';
 import { articleImageOptions } from 'src/config/multer.config';
 import { AuthorGuard } from 'src/guards/author.guard';
-import { RaceArticleService } from './race-article.service';
-import { CharacterArticleModule } from '../character-article/character-article.module';
+import {
+  RaceArticle,
+  RaceArticleSchema,
+} from 'src/schemas/race-article.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
+      { name: CharacterArticle.name, schema: CharacterArticleSchema },
       { name: RaceArticle.name, schema: RaceArticleSchema },
     ]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MulterModule.register({ storage: articleImageOptions.storage }),
     UsersModule,
-    CharacterArticleModule,
   ],
-  controllers: [RaceArticleController],
+  controllers: [CharacterArticleController],
   providers: [
-    RaceArticleService,
+    CharacterArticleService,
     {
       provide: 'IArticleService',
-      useClass: RaceArticleService,
+      useClass: CharacterArticleService,
     },
     AuthorGuard,
   ],
-  exports: [RaceArticleService],
+  exports: [CharacterArticleService, MongooseModule],
 })
-export class RaceArticleModule {}
+export class CharacterArticleModule {}

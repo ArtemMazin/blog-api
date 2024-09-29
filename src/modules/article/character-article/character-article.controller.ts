@@ -37,7 +37,7 @@ import {
   UpdateCharacterArticleDto,
   ResponseCharacterArticleDto,
 } from './dto';
-import { ResponseUserDto } from '../users/dto';
+import { ResponseUserDto } from '../../users/dto';
 
 @ApiTags('Статьи о персонажах')
 @Controller('character-articles')

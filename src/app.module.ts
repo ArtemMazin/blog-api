@@ -10,13 +10,17 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { PaymentModule } from './modules/payment/payment.module';
-import { CharacterArticleModule } from './modules/character-article/character-article.module';
+import { CharacterArticleModule } from './modules/article/character-article/character-article.module';
 import { EmailModule } from './modules/email/email.module';
 import { UsersModule } from './modules/users/users.module';
-import { RaceArticleModule } from './modules/race/race-article.module';
+import { RaceArticleModule } from './modules/article/race-article/race-article.module';
+import { UserCollectionModule } from './modules/user-collection/user-collection.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    // Подключение планировщика задач
+    ScheduleModule.forRoot(),
     // Настройка статических файлов
     ServeStaticModule.forRoot({
       rootPath:
@@ -66,6 +70,7 @@ import { RaceArticleModule } from './modules/race/race-article.module';
     CharacterArticleModule,
     EmailModule,
     RaceArticleModule,
+    UserCollectionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
