@@ -9,10 +9,10 @@ import { Model } from 'mongoose';
 import { CharacterArticle } from 'src/schemas/character-article.schema';
 import { User } from 'src/schemas/user.schema';
 import { plainToClass } from 'class-transformer';
-import { UserCollection } from 'src/schemas/user-collection';
 import { ResponseUserCollectionDto } from './dto';
 import { ResponseRollCharacterDto } from './dto/response-roll-character.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { UserCollection } from 'src/schemas/user-collection.schema';
 
 @Injectable()
 export class UserCollectionService {
@@ -68,6 +68,7 @@ export class UserCollectionService {
   async getUserCollection(userId: string): Promise<ResponseUserCollectionDto> {
     this.logger.log(`Получение коллекции пользователя: ${userId}`);
     const userCollection = await this.findUserCollectionById(userId);
+
     return this.toUserCollectionResponse(userCollection);
   }
 

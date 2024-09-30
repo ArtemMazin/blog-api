@@ -4,14 +4,14 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { UserCollectionService } from './user-collection.service';
 import { UserCollectionController } from './user-collection.controller';
 import {
-  UserCollection,
-  UserCollectionSchema,
-} from 'src/schemas/user-collection';
-import {
   CharacterArticle,
   CharacterArticleSchema,
 } from 'src/schemas/character-article.schema';
 import { User, UserSchema } from 'src/schemas/user.schema';
+import {
+  UserCollection,
+  UserCollectionSchema,
+} from 'src/schemas/user-collection.schema';
 
 @Module({
   imports: [

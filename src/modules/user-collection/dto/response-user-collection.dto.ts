@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Type } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import { IsDate, IsString, IsNumber, IsArray } from 'class-validator';
-import { ResponseCharacterArticleDto } from 'src/modules/article/character-article/dto/response-character-article.dto';
 
 export class ResponseUserCollectionDto {
   @Expose()
@@ -22,12 +21,11 @@ export class ResponseUserCollectionDto {
 
   @Expose()
   @ApiProperty({
-    description: 'Список персонажей в коллекции',
-    type: [ResponseCharacterArticleDto],
+    description: 'Список id персонажей в коллекции',
+    type: [String],
   })
   @IsArray()
-  @Type(() => ResponseCharacterArticleDto)
-  characters: ResponseCharacterArticleDto[];
+  characters: string[];
 
   @Expose()
   @ApiProperty({
