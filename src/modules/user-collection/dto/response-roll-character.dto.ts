@@ -1,16 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Type } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import { IsBoolean } from 'class-validator';
-import { ResponseCharacterArticleDto } from 'src/modules/article/character-article/dto/response-character-article.dto';
 
 export class ResponseRollCharacterDto {
   @Expose()
   @ApiProperty({
-    description: 'Полученный персонаж',
-    type: ResponseCharacterArticleDto,
+    description: 'id полученного персонажа',
+    example: '60d5ecb54e7d5a001f5d4f2c',
   })
-  @Type(() => ResponseCharacterArticleDto)
-  character: ResponseCharacterArticleDto;
+  character: string;
 
   @Expose()
   @ApiProperty({

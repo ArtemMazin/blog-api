@@ -29,9 +29,19 @@ export class UserCollectionService {
   private toUserCollectionResponse(
     userCollection: UserCollection,
   ): ResponseUserCollectionDto {
-    return plainToClass(ResponseUserCollectionDto, userCollection.toObject(), {
-      excludeExtraneousValues: true,
-    });
+    return plainToClass(
+      ResponseUserCollectionDto,
+      {
+        ...userCollection.toObject(),
+        user: userCollection.user.toString(),
+        characters: userCollection.characters.map((character) =>
+          character.toString(),
+        ),
+      },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   async initializeCollection(userId: string): Promise<void> {
@@ -67,7 +77,7 @@ export class UserCollectionService {
 
   async getUserCollection(userId: string): Promise<ResponseUserCollectionDto> {
     this.logger.log(`Получение коллекции пользователя: ${userId}`);
-    const userCollection = await this.findUserCollectionById(userId);
+    const userCollection = await this.findUserCollectionById(userId.toString());
 
     return this.toUserCollectionResponse(userCollection);
   }
@@ -77,8 +87,8 @@ export class UserCollectionService {
       `Попытка получения случайного персонажа для пользователя: ${userId}`,
     );
 
-    const userCollection = await this.findUserCollectionById(userId);
-    const user = await this.userModel.findById(userId).exec();
+    const userCollection = await this.findUserCollectionById(userId.toString());
+    const user = await this.userModel.findById(userId.toString()).exec();
 
     if (!user) {
       throw new NotFoundException(`Пользователь с ID ${userId} не найден`);
@@ -111,7 +121,7 @@ export class UserCollectionService {
     return plainToClass(
       ResponseRollCharacterDto,
       {
-        character: character[0],
+        character: character[0]._id.toString(),
         isNew,
         remainingRolls: maxRolls - userCollection.rollsToday,
       },
