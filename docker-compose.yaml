@@ -1,0 +1,39 @@
+services:
+  blog:
+    build: .
+    container_name: blog-app
+    ports:
+      - '5000:5000' # Используем порт 5000, как указано в .env
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT}
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - RESET_PASS_URL=${RESET_PASS_URL}
+      - YOOKASSA_URL=${YOOKASSA_URL}
+      - YOOKASSA_RETURN_URL=${YOOKASSA_RETURN_URL}
+      - YOOKASSA_SHOP_ID=${YOOKASSA_SHOP_ID}
+      - YOOKASSA_SECRET_KEY=${YOOKASSA_SECRET_KEY}
+      - UPLOAD_ROOT_PATH=${UPLOAD_ROOT_PATH}
+      - SERVE_ROOT=${SERVE_ROOT}
+    volumes:
+      - ./uploads:/usr/src/app/uploads
+    depends_on:
+      - mongo
+    restart: always
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo-container
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+volumes:
+  mongo-data:

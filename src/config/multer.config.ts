@@ -3,7 +3,7 @@ import { diskStorage } from 'multer';
 import * as dotenv from 'dotenv';
 
 // Загрузка переменных окружения
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+dotenv.config({ path: `.env` });
 
 // Определение корневой директории для загрузок
 const uploadRoot =

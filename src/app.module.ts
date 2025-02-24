@@ -30,7 +30,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       serveRoot: process.env.SERVE_ROOT,
     }),
     // Загрузка конфигурации
-    ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}` }),
+    ConfigModule.forRoot({ envFilePath: `.env` }),
     // Подключение к MongoDB
     MongooseModule.forRoot(process.env.MONGO_URI),
 

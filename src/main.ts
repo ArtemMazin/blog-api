@@ -8,7 +8,7 @@ import helmet from 'helmet';
 
 async function bootstrap() {
   // Загрузка переменных окружения
-  dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+  dotenv.config({ path: `.env` });
 
   const PORT = process.env.PORT || 3000;
   const app = await NestFactory.create(AppModule);
@@ -20,7 +20,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      'https://viva-msk-test.online',
+      'https://m-dev.site',
       'https://blog-psi-nine-19.vercel.app',
       'https://blog-git-main-artems-projects-3eddffb7.vercel.app',
       'https://blog-lnxb4p3d0-artems-projects-3eddffb7.vercel.app',
